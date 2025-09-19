@@ -1,0 +1,42 @@
+package:
+  name: loremine
+  version: "1.0"
+
+source:
+  path: ..
+
+build:
+  entry_points:
+    - loremine = src.main:main
+  noarch: python
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  host:
+    - python=3.11
+    - setuptools
+  run:
+    - python=3.11
+    - flye=2.9.5
+    - hifiasm=0.21.0
+    - pbipa=1.8.0=hbd632db_1
+    - pandas=2.3.2
+    - biopython=1.81
+    - quast=5.3.0
+    - dfast_qc=1.0.7
+    - antismash=8.0.2
+    - bigslice=2.0.2
+    - sortedcontainers=2.4.0
+    - sourmash_plugin_branchwater=0.9.13
+    - sqlalchemy=2.0.2
+    - click=8.1.7
+
+test:
+  commands:
+    - loremine --help
+
+about:
+  home: "https://github.com/kalininalab/LoReMINE"
+  license: MIT
+  summary: "LoreMiNE: Long Read-based Microbial genome mining pipeline"
