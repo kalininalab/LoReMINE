@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_pacbio(args):
@@ -10,8 +11,11 @@ def perform_assembly_raw_reads_pacbio(args):
     os.makedirs(assembly_basepath + "/flye")
     os.makedirs(assembly_basepath + "/quast_outputs")
 
+    suffixes = Path(args.reads).suffixes
+    raw_reads_filename = args.prefix + "".join(suffixes)
+
     if args.alt_param == False:
-        flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
+        flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
         os.system(flye_command)
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
@@ -20,13 +24,13 @@ def perform_assembly_raw_reads_pacbio(args):
             print("Assembly stats can be found here: " + assembly_basepath + "/flye/quast/report.pdf" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
-            print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
+            print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
     else:
         min_overlap = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
         files_present = {}
         for ele in min_overlap:
             os.makedirs(assembly_basepath + "/flye/" + str(ele))
-            flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele)
+            flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele)
             os.system(flye_command)
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"

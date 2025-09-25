@@ -24,7 +24,8 @@ def taxonomy_single_genome_all_submodules(args, input_fasta, basepath):
 
 def taxonomy_multiple_genomes(args):
     basepath = os.path.abspath(args.output)
-    os.makedirs(basepath + "/taxonomy")
+    if not os.path.exists(basepath + "/taxonomy"):
+        os.makedirs(basepath + "/taxonomy")
     for file in os.listdir(args.input_dir):
         filename = os.path.splitext(os.path.basename(file))[0]
         print("Running taxonomy for " + file + '\n')

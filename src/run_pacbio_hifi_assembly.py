@@ -23,7 +23,7 @@ def perform_assembly_hifi_reads(args):
         generate_contig_circularity_info("flye", assembly_basepath + "/quast_outputs/flye/", assembly_basepath + "/flye/")
         print("\n\nAssembly using flye completed. Next, we will perform assembly using HiFiasm...")
     else:
-        print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
+        print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
 
     os.makedirs(assembly_basepath + "/Hifiasm")
     os.chdir(assembly_basepath + "/Hifiasm/")

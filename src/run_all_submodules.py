@@ -20,13 +20,13 @@ def run_all_submodules(args):
     if args.batch_run == None:
 
         if args.pacbio_raw != None:
-            print('Pabio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
+            print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
             convert_reads(args)
             print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
             final_assembly_path = perform_assembly_raw_reads(args)
 
         elif args.pacbio_hifi != None:
-            print('Pabio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
+            print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
             convert_reads(args)
             print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
             final_assembly_path = perform_assembly_hifi_reads(args)
@@ -36,14 +36,16 @@ def run_all_submodules(args):
             sys.exit(1)
 
         elif args.reads != None and args.reads_type == "raw_pacbio":
-            print('Pabio raw reads provided at this location:' + os.path.abspath(args.reads))
+            print('Pacbio raw reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
-            shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+            suffixes = Path(args.reads).suffixes
+            raw_reads_filename = args.prefix + "".join(suffixes)
+            shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
             print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
             final_assembly_path = perform_assembly_raw_reads_pacbio(args)
 
         elif args.reads != None and args.reads_type == "hifi_pacbio":
-            print('Pabio HiFi reads provided at this location:' + os.path.abspath(args.reads))
+            print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
             shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
             print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
@@ -52,7 +54,9 @@ def run_all_submodules(args):
         elif args.reads != None and args.reads_type == "raw_nanopore":
             print('Nanopore raw reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
-            shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+            suffixes = Path(args.reads).suffixes
+            raw_reads_filename = args.prefix + "".join(suffixes)
+            shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
             print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
             final_assembly_path = perform_assembly_raw_reads_nanopore(args)
 
@@ -85,7 +89,7 @@ def run_all_submodules(args):
                 prefix = split_array[3].strip()
 
                 if reads_type == "hifi_pacbio":
-                    print('Pabio HiFi reads provided at this location:' + raw_reads_location)
+                    print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
                     shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + prefix + ".fastq")
@@ -93,20 +97,24 @@ def run_all_submodules(args):
                     final_assembly_path = perform_assembly_hifi_reads_batch_run(args, basepath + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, basepath)
 
                 elif reads_type == "raw_pacbio":
-                    print('Pabio raw reads provided at this location:' + raw_reads_location)
+                    print('Pacbio raw reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
-                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + prefix + ".fastq")
+                    suffixes = Path(raw_reads_location).suffixes
+                    raw_reads_filename = prefix + "".join(suffixes)
+                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
                     print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                    final_assembly_path = perform_assembly_raw_reads_pacbio_batch_run(args, basepath + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, basepath)
+                    final_assembly_path = perform_assembly_raw_reads_pacbio_batch_run(args, basepath + "/raw_reads/" + raw_reads_filename, genome_size, prefix, basepath)
 
                 elif reads_type == "raw_nanopore":
                     print('Nanopore raw reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
-                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + prefix + ".fastq")
+                    suffixes = Path(raw_reads_location).suffixes
+                    raw_reads_filename = prefix + "".join(suffixes)
+                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
                     print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
-                    final_assembly_path = perform_assembly_raw_reads_nanopore_batch_run(args, basepath + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, basepath)
+                    final_assembly_path = perform_assembly_raw_reads_nanopore_batch_run(args, basepath + "/raw_reads/" + raw_reads_filename, genome_size, prefix, basepath)
 
                 if not os.path.exists(basepath + '/assembly/best_assemblies'):
                     os.makedirs(basepath + '/assembly/best_assemblies')

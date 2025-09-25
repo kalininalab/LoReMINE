@@ -12,6 +12,7 @@ from src.run_all_submodules import *
 import shutil
 import os
 import glob
+from pathlib import Path
 
 def main():
     # Create the parser
@@ -26,7 +27,7 @@ def main():
     parser_assemble.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (deafult = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_assemble.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))',default="5000000")
     parser_assemble.add_argument('-o', '--output',type=str, help='path to the save the output of the assembly', required=True)
-    parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default=1)
+    parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field', required=True)
     parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
 
@@ -36,15 +37,16 @@ def main():
     parser_taxonomy.add_argument('-i', '--input_fasta', type=str, help='path to the input fasta file (Use this when you want to identify the taxonomy for single genome)')
     parser_taxonomy.add_argument('--input_dir', type=str, help='path to the input directory containing multiple fasta files (Use this option to identify the taxonomy for multiple genomes)')
     parser_taxonomy.add_argument('-o', '--output', type=str, help='path to the save the output of the taxonomy', required=True)
-    parser_taxonomy.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default=1)
+    parser_taxonomy.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
 
     #################################################  Identifying the BGCs in the genome ############################################
 
     parser_bgc_identification = subparsers.add_parser('identify_bgcs', help='identify the BGCs in the genome')
     parser_bgc_identification.add_argument('-i', '--input_fasta', type=str, help='path to the input fasta file (Use this when you want to identify the BGCs for single genome)')
     parser_bgc_identification.add_argument('--input_dir', type=str, help='path to the input directory containing multiple fasta files (Use this option to identify the BGCs for multiple genomes)')
+    parser_bgc_identification.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the save the output of the bcg identification', required=True)
-    parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default=1)
+    parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
 
     #################################################  Run the BGC clustering ############################################
 
@@ -53,10 +55,10 @@ def main():
     parser_bgc_clustering.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
     parser_bgc_clustering.add_argument('-o', '--output', type=str, help='path to the output directory which will contain the clustering output')
     parser_bgc_clustering.add_argument('--clustering_type', type=str, help='Possible values are \"bigslice\", \"bigscape\" or \"both\"', required=True)
-    parser_bgc_clustering.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default=1)
+    parser_bgc_clustering.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_bgc_clustering.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file', required=True)
-    parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default=0.4)
-    parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default=0.5)
+    parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
+    parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
 
     #################################################  Run the whole pipeline together ############################################
 
@@ -68,14 +70,15 @@ def main():
     parser_all_submodules.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (deafult = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_all_submodules.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))', default="5000000")
     parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the assembly', required=True)
-    parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default=1)
+    parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field', required=True)
     parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
+    parser_all_submodules.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_all_submodules.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
     parser_all_submodules.add_argument('--clustering_type', type=str, help='Possible values are \"bigslice\", \"bigscape\" or \"both\"', required=True)
     parser_all_submodules.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file', required=True)
-    parser_all_submodules.add_argument('--bigslice_cutoff', type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default=0.4)
-    parser_all_submodules.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default=0.5)
+    parser_all_submodules.add_argument('--bigslice_cutoff', type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
+    parser_all_submodules.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
 
     args = parser.parse_args()
 
@@ -83,13 +86,13 @@ def main():
 
         if args.batch_run == None:
             if args.pacbio_raw != None:
-                print('Pabio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
+                print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
                 perform_assembly_raw_reads(args)
 
             elif args.pacbio_hifi != None:
-                print('Pabio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
+                print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
                 perform_assembly_hifi_reads(args)
@@ -99,14 +102,16 @@ def main():
                 sys.exit(1)
 
             elif args.reads != None and args.reads_type == "raw_pacbio":
-                print('Pabio raw reads provided at this location:' + os.path.abspath(args.reads))
+                print('Pacbio raw reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
-                shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+                suffixes = Path(args.reads).suffixes
+                raw_reads_filename = args.prefix + "".join(suffixes)
+                shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
                 perform_assembly_raw_reads_pacbio(args)
 
             elif args.reads != None and args.reads_type == "hifi_pacbio":
-                print('Pabio HiFi reads provided at this location:' + os.path.abspath(args.reads))
+                print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
@@ -115,7 +120,9 @@ def main():
             elif args.reads != None and args.reads_type == "raw_nanopore":
                 print('Nanopore raw reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
-                shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+                suffixes = Path(args.reads).suffixes
+                raw_reads_filename = args.prefix + "".join(suffixes)
+                shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
                 perform_assembly_raw_reads_nanopore(args)
 
@@ -133,25 +140,29 @@ def main():
                     prefix = split_array[3].strip()
 
                     if reads_type == "hifi_pacbio":
-                        print('Pabio HiFi reads provided at this location:' + raw_reads_location)
+                        print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
                         os.makedirs(output_path + "/raw_reads")
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + prefix + ".fastq")
                         print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
                         perform_assembly_hifi_reads_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
 
                     elif reads_type == "raw_pacbio":
-                        print('Pabio raw reads provided at this location:' + raw_reads_location)
+                        print('Pacbio raw reads provided at this location:' + raw_reads_location)
                         os.makedirs(output_path + "/raw_reads")
-                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + prefix + ".fastq")
+                        suffixes = Path(raw_reads_location).suffixes
+                        raw_reads_filename = prefix + "".join(suffixes)
+                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                        perform_assembly_raw_reads_pacbio_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
+                        perform_assembly_raw_reads_pacbio_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
 
                     elif reads_type == "raw_nanopore":
                         print('Nanopore raw reads provided at this location:' + raw_reads_location)
                         os.makedirs(output_path + "/raw_reads")
-                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + prefix + ".fastq")
+                        suffixes = Path(raw_reads_location).suffixes
+                        raw_reads_filename = prefix + "".join(suffixes)
+                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
-                        perform_assembly_raw_reads_nanopore_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
+                        perform_assembly_raw_reads_nanopore_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
 
 
     elif args.command == "taxonomy":
