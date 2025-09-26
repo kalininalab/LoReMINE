@@ -6,6 +6,7 @@ from src.evaluate_best_assembly import *
 from src.identify_taxonomy import *
 from src.identify_bgcs import *
 from src.run_bgc_clustering import *
+from pathlib import Path
 import shutil
 import os
 import glob
