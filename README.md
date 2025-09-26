@@ -21,3 +21,13 @@ conda create -n loremine
 conda activate
 conda install -c conda-forge -c kalininalab -c bioconda loremine
 `````
+We still need to install [BiG-SCAPE](https://github.com/medema-group/BiG-SCAPE) before using the LoReMINE pipeline. You can install it anywhere, but we prefer to install in the same conda environment directory (````` ~/anaconda3/envs/loremine/ `````) so that all tools are in one place. To install [BiG-SCAPE](https://github.com/medema-group/BiG-SCAPE), follow the instructions given below
+
+`````shell
+cd ~/anaconda3/envs/loremine/
+git clone https://github.com/medema-group/BiG-SCAPE
+cd BiG-SCAPE
+pip install .
+`````
+
+## Setting up local databases
