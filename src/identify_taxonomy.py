@@ -1,28 +1,39 @@
 import os
 
 def taxonomy_single_genome(args):
+
+    """Identify the taxonomy of a single genome"""
+
     basepath = os.path.abspath(args.output)
-    os.makedirs(basepath + "/taxonomy")
+    if not os.path.exists(basepath + "/taxonomy"):
+        os.makedirs(basepath + "/taxonomy")
     filename = os.path.splitext(os.path.basename(args.input_fasta))[0]
     command = "dfast_qc -i " + args.input_fasta + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
     print("Running taxonomy for " + args.input_fasta + '\n')
     os.system(command)
     print("Taxonomy identification completed for " + args.input_fasta + '\n')
-    extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')
+    extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
     print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
 
 def taxonomy_single_genome_all_submodules(args, input_fasta, basepath):
-    os.makedirs(basepath + "/taxonomy")
+
+    """Identify the taxonomy of a single genome (while running the whole pipeline together)"""
+
+    if not os.path.exists(basepath + "/taxonomy"):
+        os.makedirs(basepath + "/taxonomy")
     filename = args.prefix
     command = "dfast_qc -i " + input_fasta + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
     print("Running taxonomy for " + input_fasta + '\n')
     os.system(command)
     print("Taxonomy identification completed for " + input_fasta + '\n')
-    extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')
+    extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
     print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
 
 
 def taxonomy_multiple_genomes(args):
+
+    """Identify the taxonomy of multiple genomes"""
+
     basepath = os.path.abspath(args.output)
     if not os.path.exists(basepath + "/taxonomy"):
         os.makedirs(basepath + "/taxonomy")
@@ -32,11 +43,14 @@ def taxonomy_multiple_genomes(args):
         command = "dfast_qc -i " + args.input_dir + '/' + file + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
         os.system(command)
         print("Taxonomy identification completed for " + file  + '\n')
-        extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')
+        extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
         print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
 
 
 def taxonomy_multiple_genomes_all_submodules(args, input_dir, basepath):
+
+    """Identify the taxonomy of multiple genomes (while running the whole pipeline together)"""
+
     if not os.path.exists(basepath + "/taxonomy"):
         os.makedirs(basepath + "/taxonomy")
     for file in os.listdir(input_dir):
@@ -45,12 +59,17 @@ def taxonomy_multiple_genomes_all_submodules(args, input_dir, basepath):
         command = "dfast_qc -i " + input_dir + '/' + file + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
         os.system(command)
         print("Taxonomy identification completed for " + file  + '\n')
-        extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')
+        extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
         print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
 
 
 def extract_taxonomy_info(output_path):
+
+    """Collect both NCBI & GTDB taxonomy outputs and summarize in one file """
+
     write_file = open(output_path + 'identified_taxonomy.txt', 'x')
+
+    #################################### Calculate the taxonomy output from NCBI ##############################
 
     write_file.write("\n\n##################### NCBI database taxonomy result #####################\n\n")
 
@@ -99,7 +118,7 @@ def extract_taxonomy_info(output_path):
                 write_file.write("\t" + str(key_counter_ncbi) + ". Organism: " + key_ncbi + ", NCBI Accession: " + accession_ncbi[key_ncbi] + ", NCBI Taxonomy ID: " + taxid_ncbi[key_ncbi] + "\n")
                 key_counter_ncbi += 1
 
-    #################################### Calculate the taxonomy from GTDB ##############################
+    #################################### Calculate the taxonomy output from GTDB ##############################
 
     write_file.write("\n\n\n\n##################### GTDB database taxonomy result #####################\n\n")
 

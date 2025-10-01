@@ -4,6 +4,9 @@ from pathlib import Path
 from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_pacbio(args):
+
+    """Perform the genome assembly using pacbio raw reads"""
+
     basepath = os.path.abspath(args.output)
     os.makedirs(basepath + "/assembly")
     os.makedirs(basepath + "/assembly/" + args.prefix)
@@ -14,18 +17,19 @@ def perform_assembly_raw_reads_pacbio(args):
     suffixes = Path(args.reads).suffixes
     raw_reads_filename = args.prefix + "".join(suffixes)
 
-    if args.alt_param == False:
+    if args.alt_param == False:   # Performing the assembly using default parameters
         flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
         os.system(flye_command)
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
-            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"
+            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"  # Collect the assembly stats using quast
             os.system(quast_command)
             print("Assembly stats can be found here: " + assembly_basepath + "/flye/quast/report.pdf" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
-    else:
+
+    else:  # Performing the assembly using alternate parameters as the assembly using default parameters was not satisfactory
         min_overlap = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
         files_present = {}
         for ele in min_overlap:
@@ -34,7 +38,7 @@ def perform_assembly_raw_reads_pacbio(args):
             os.system(flye_command)
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
-                quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"
+                quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
                 os.system(quast_command)
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
@@ -48,7 +52,7 @@ def perform_assembly_raw_reads_pacbio(args):
 
 
         print("Selecting the best assembly out of all the assemblies....")
-        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")
+        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")   # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
     if args.alt_param == False:
@@ -60,6 +64,9 @@ def perform_assembly_raw_reads_pacbio(args):
 
 
 def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_size, prefix, output_path):
+
+    """Perform the genome assembly using pacbio raw reads (while running the whole pipeline together)"""
+
     basepath = output_path
     if not os.path.exists(basepath + "/assembly"):
         os.makedirs(basepath + "/assembly")
@@ -68,18 +75,19 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
     os.makedirs(assembly_basepath + "/flye")
     os.makedirs(assembly_basepath + "/quast_outputs")
 
-    if args.alt_param == False:
+    if args.alt_param == False:  # Performing the assembly using default parameters
         flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
         os.system(flye_command)
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
-            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"
+            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
             os.system(quast_command)
             print("Assembly stats can be found here: " + assembly_basepath + "/flye/quast/report.pdf" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
-    else:
+
+    else:  # Performing the assembly using alternate parameters as the assembly using default parameters was not satisfactory
         min_overlap = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
         files_present = {}
         for ele in min_overlap:
@@ -88,7 +96,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
             os.system(flye_command)
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
-                quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"
+                quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
                 os.system(quast_command)
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
@@ -102,7 +110,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
 
 
         print("Selecting the best assembly out of all the assemblies....")
-        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")
+        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")  # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
     if args.alt_param == False:
@@ -115,6 +123,9 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
 
 
 def generate_contig_circularity_info(quast_path, output_path):
+
+    """Checking the assemblies to identify the length of the contigs along with their circularity info (whether the contig is circular or linear)"""
+
     write_file = open(quast_path + '/circularity.tsv', 'x')
     write_file.write("contig_name\tcircular\tLength\n")
 

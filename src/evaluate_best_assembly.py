@@ -4,10 +4,12 @@ import pandas as pd
 
 # Set your expected genome size here (in bp)
 EXPECTED_GENOME_SIZE = 5000000  # e.g., ~5 Mb for many bacteria
-CHROMOSOME_SIZE_THRESHOLD = 0.95 * EXPECTED_GENOME_SIZE  # 90% of genome size
+CHROMOSOME_SIZE_THRESHOLD = 0.95 * EXPECTED_GENOME_SIZE  # 95% of genome size
 
 def parse_quast_report(report_path):
-    """Extract N50, #contigs, and total length from QUAST report.tsv."""
+
+    """Extract N50, #contigs, and total length from QUAST report.tsv"""
+
     stats = {}
     with open(report_path) as f:
         for line in f:
@@ -20,7 +22,9 @@ def parse_quast_report(report_path):
     return stats
 
 def parse_circular_contigs(circularity_report_path, genome_size):
-    """Return total circular contigs and if a likely circular chromosome is present."""
+
+    """Return total circular contigs and if a likely circular chromosome is present"""
+
     CHROMOSOME_SIZE_THRESHOLD = 0.95 * float(genome_size)
     df = pd.read_csv(circularity_report_path, sep='\t')
     if "circular" not in df.columns:
@@ -36,6 +40,9 @@ def parse_circular_contigs(circularity_report_path, genome_size):
     return num_circular, has_circular_chromosome
 
 def evaluate_assemblies(quast_dirs, genome_size, best_assembly_store_path):
+
+    """Evaluate multiple assemblies and pick the best assembly"""
+
     rankings = []
 
     for quast_dir in quast_dirs:
@@ -55,11 +62,8 @@ def evaluate_assemblies(quast_dirs, genome_size, best_assembly_store_path):
         print("No valid QUAST outputs found.")
         return None
 
-    # Scoring formula (customized):
-    # High bonus for circular chromosome
-    # Moderate bonus for plasmid-like circular contigs
-    # Heavy penalty for fragmented assemblies
-    # Small bonus for N50
+    # The scoring function deciding the score for each assembly based on circularity of chromosome, no. of circular contigs, total no. of contigs and size of chromosome (bigger the better)
+
     df["score"] = (
         df["has_circular_chromosome"].astype(int) * 10 +  # very high priority
         df["num_circular"] * 2 -                          # minor bonus for other circular contigs
@@ -69,6 +73,7 @@ def evaluate_assemblies(quast_dirs, genome_size, best_assembly_store_path):
 
     df_sorted = df.sort_values( by=["score", "N50", "total_length"], ascending=[False, False, False])
 
+    # Storing the best assembly in a file
     best_assembly_file = open(best_assembly_store_path + "chosen_best_assembly.txt", 'x')
 
     #df_sorted = df.sort_values(by=["score", "total_length"], ascending=[False, False])

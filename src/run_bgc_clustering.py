@@ -4,6 +4,9 @@ import sqlite3
 from sqlite3 import Error
 
 def run_bigslice_clustering(args):
+
+    """Run the bgc clustering using BiG-SLiCE"""
+
     basepath = os.path.abspath(args.output)
     if not os.path.exists(basepath + "/clustering"):
         os.makedirs(basepath + "/clustering")
@@ -13,10 +16,12 @@ def run_bigslice_clustering(args):
     os.makedirs(basepath + "/bigslice/dataset")
     os.makedirs(basepath + "/bigslice/dataset/input_bgc")
 
+    # Creating necessary input files and directory structure for bigslice run
     with open(basepath + "/bigslice/taxonomy/dataset_taxonomy.tsv", 'x') as taxonomy_file:
         taxonomy_file.write("Genome folder\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\tOrganism\n")
         taxonomy_file.write(basepath + "/bigslice/dataset/input_bgc/" + "\tBacteria\tMyxococcota\tDeltaproteobacteria\tMyxococcales\tMyxococcaceae\tMyxococcus\tMyxococcus xanthus\tMyxococcus xanthus")
 
+    # Creating necessary input files and directory structure for bigslice run
     with open(basepath + "/bigslice/datasets.tsv", 'x') as dataset_file:
         dataset_file.write("# Dataset name\tPath to folder\tPath to taxonomy\tDescription\n")
         dataset_file.write("dataset\t" + basepath + "/bigslice/dataset/\t" + basepath + "/bigslice/taxonomy/dataset_taxonomy.tsv\tNot available")
@@ -25,6 +30,8 @@ def run_bigslice_clustering(args):
         if file.endswith(".gbk"):
             shutil.copy(args.input_dir + '/' + file, basepath + "/bigslice/dataset/input_bgc/")
 
+
+    # Check if MiBiG is activated or not. If yes, then download mibig bgcs and convert them into proper format such that it can be accepted by bigslice
     if args.mibig == True:
         download_mibig(basepath)
         for file in os.listdir(basepath + "/mibig_gbk_4.0"):
@@ -42,6 +49,9 @@ def run_bigslice_clustering(args):
 
 
 def run_bigslice_clustering_all_submodules(args, input_dir, basepath):
+
+    """Run the bgc clustering using BiG-SLiCE (while running the whole pipeline together)"""
+
     if not os.path.exists(basepath + "/clustering"):
         os.makedirs(basepath + "/clustering")
     basepath = basepath + "/clustering"
@@ -50,10 +60,12 @@ def run_bigslice_clustering_all_submodules(args, input_dir, basepath):
     os.makedirs(basepath + "/bigslice/dataset")
     os.makedirs(basepath + "/bigslice/dataset/input_bgc")
 
+    # Creating necessary input files and directory structure for bigslice run
     with open(basepath + "/bigslice/taxonomy/dataset_taxonomy.tsv", 'x') as taxonomy_file:
         taxonomy_file.write("Genome folder\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\tOrganism\n")
         taxonomy_file.write(basepath + "/bigslice/dataset/input_bgc/" + "\tBacteria\tMyxococcota\tDeltaproteobacteria\tMyxococcales\tMyxococcaceae\tMyxococcus\tMyxococcus xanthus\tMyxococcus xanthus")
 
+    # Creating necessary input files and directory structure for bigslice run
     with open(basepath + "/bigslice/datasets.tsv", 'x') as dataset_file:
         dataset_file.write("# Dataset name\tPath to folder\tPath to taxonomy\tDescription\n")
         dataset_file.write("dataset\t" + basepath + "/bigslice/dataset/\t" + basepath + "/bigslice/taxonomy/dataset_taxonomy.tsv\tNot available")
@@ -62,6 +74,7 @@ def run_bigslice_clustering_all_submodules(args, input_dir, basepath):
         if 'region' in file and file.endswith('.gbk'):
             shutil.copy(input_dir + '/' + file, basepath + "/bigslice/dataset/input_bgc/")
 
+    # Check if MiBiG is activated or not. If yes, then download mibig bgcs and convert them into proper format such that it can be accepted by bigslice
     if args.mibig == True:
         download_mibig(basepath)
         for file in os.listdir(basepath + "/mibig_gbk_4.0"):
@@ -79,6 +92,9 @@ def run_bigslice_clustering_all_submodules(args, input_dir, basepath):
 
 
 def run_bigscape_clustering(args):
+
+    """Run the bgc clustering using BiG-SCAPE"""
+
     basepath = os.path.abspath(args.output)
     if not os.path.exists(basepath + "/clustering"):
         os.makedirs(basepath + "/clustering")
@@ -93,6 +109,7 @@ def run_bigscape_clustering(args):
 
     bigscape_command = "bigscape cluster -i " + basepath + "/bigscape/input_bgc/ -o " + basepath + "/bigscape/output/ --include-gbk '*' --pfam-path " + args.pfam_dir + " --gcf-cutoffs " + str(args.bigscape_cutoff) + " --mix --include-singletons -c " + args.threads
 
+    # Check if the MiBiG is activated or not. If yes, then use it for bigscape clustering
     if args.mibig == True:
         bigscape_command += " --mibig-version 4.0"
 
@@ -104,14 +121,15 @@ def run_bigscape_clustering(args):
         if filename in files:
             src_path = os.path.join(root, filename)
 
-    clean_bigscape_output(src_path, basepath + "/bigscape/output/output_clusters.tsv")
-
-    # shutil.copyfile(src_path, basepath + "/bigscape/output/output_clusters.tsv")
+    clean_bigscape_output(src_path, basepath + "/bigscape/output/output_clusters.tsv")  # Clean the bigscape output to remove GCFs with only MiBiG BGCs
 
     print("Clustering using BiGSCAPE completed at threshold " + str(args.bigscape_cutoff) + ". You can find the final clustering output here:" + basepath + "/bigscape/output/output_clusters.tsv")
 
 
 def run_bigscape_clustering_all_submodules(args, input_dir, basepath):
+
+    """Run the bgc clustering using BiG-SCAPE (while running the whole pipeline together)"""
+
     if not os.path.exists(basepath + "/clustering"):
         os.makedirs(basepath + "/clustering")
     basepath = basepath + "/clustering"
@@ -125,6 +143,7 @@ def run_bigscape_clustering_all_submodules(args, input_dir, basepath):
 
     bigscape_command = "bigscape cluster -i " + basepath + "/bigscape/input_bgc/ -o " + basepath + "/bigscape/output/ --include-gbk '*' --pfam-path " + args.pfam_dir + " --gcf-cutoffs " + str(args.bigscape_cutoff) + " --mix --include-singletons -c " + args.threads
 
+    # Check if the MiBiG is activated or not. If yes, then use it for bigscape clustering
     if args.mibig == True:
         bigscape_command += " --mibig-version 4.0"
 
@@ -136,13 +155,15 @@ def run_bigscape_clustering_all_submodules(args, input_dir, basepath):
         if filename in files:
             src_path = os.path.join(root, filename)
 
-    clean_bigscape_output(src_path, basepath + "/bigscape/output/output_clusters.tsv")
-    # shutil.copyfile(src_path, basepath + "/bigscape/output/output_clusters.tsv")
+    clean_bigscape_output(src_path, basepath + "/bigscape/output/output_clusters.tsv")  # Clean the bigscape output to remove GCFs with only MiBiG BGCs
 
     print("Clustering using BiGSCAPE completed at threshold " + str(args.bigscape_cutoff) + ". You can find the final clustering output here:" + basepath + "/bigscape/output/output_clusters.tsv")
 
 
 def download_mibig(path):
+
+    """Download and extract the MiBiG bgcs for BiG-SLiCE run"""
+
     import requests
     import tarfile
     import os
@@ -150,15 +171,14 @@ def download_mibig(path):
     # URL of the MIBiG 4.0 GenBank archive
     url = "https://dl.secondarymetabolites.org/mibig/mibig_gbk_4.0.tar.gz"
 
-    # Paths
+
     base_dir = path
     extract_dir = base_dir
     tar_path = os.path.join(base_dir, "mibig_gbk_4.0.tar.gz")
 
-    # Make sure base_dir exists
     os.makedirs(base_dir, exist_ok=True)
 
-    # Step 1: Download the file
+    # Download the MiBiG BGCs
     print("Downloading MIBiG BGC dataset...")
     response = requests.get(url, stream=True)
     with open(tar_path, "wb") as f:
@@ -167,7 +187,7 @@ def download_mibig(path):
                 f.write(chunk)
     print(f"Downloaded to {tar_path}")
 
-    # Step 2: Extract into bigslice/mibig
+    # Extract the bgcs from zip file
     print(f"Extracting into {extract_dir}/mibig_gbk_4.0/")
     os.makedirs(extract_dir, exist_ok=True)
     with tarfile.open(tar_path, "r:gz") as tar:
@@ -179,6 +199,9 @@ def download_mibig(path):
 
 
 def extract_bigslice_output(output_path):
+
+    """Extract the BiG-SLiCE output from a database into a tsv file"""
+
     database = r"" + output_path + "result/data.db"
 
     # create a database connection
@@ -220,6 +243,8 @@ def extract_bigslice_output(output_path):
     write_file = open(output_path + 'output_clusters.tsv', 'x')
     write_file.write('BGC\tGCF_id\tDistance\ton_contig_edge\tlength\n')
 
+
+    # Clean the BiG-SLiCE output to remove GCFs which has only MiBiG bgcs
     counter = 0
     with open(output_path + 'output_clusters_with_length.tsv') as clustering_file:
         for line in clustering_file.readlines():
@@ -248,6 +273,9 @@ def create_connection(db_file):
     return conn
 
 def clean_bigscape_output(input_file, output_path):
+
+    """Clean the BiG-SCAPE output to remove GCFs which has only MiBiG bgcs"""
+
     mibig_bgc_with_gcf_id = {}
     counter = 0
     other_gcfs = set()

@@ -1,3 +1,5 @@
+"""This is the entry point of the LoReMINE pipeline"""
+
 import argparse
 import sys
 from src.convert_reads_to_fastq import *
@@ -18,6 +20,8 @@ def main():
     # Create the parser
     parser = argparse.ArgumentParser(prog="loremine", description="LoReMINE: Long read-based microbial genome mining pipeline")
 
+    #################################################  Parser for running the genome assembly ############################################
+
     subparsers = parser.add_subparsers(dest='command', required=True)
     parser_assemble = subparsers.add_parser('assemble', help='run automated genome assembly pipeline')
     parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
@@ -31,7 +35,7 @@ def main():
     parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field', required=True)
     parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
 
-    #################################################  Identifying the taxonomy of the genome ############################################
+    #################################################  Parser for identifying the taxonomy of the genome ############################################
 
     parser_taxonomy = subparsers.add_parser('taxonomy', help='identify the taxonomy of the genome')
     parser_taxonomy.add_argument('-i', '--input_fasta', type=str, help='path to the input fasta file (Use this when you want to identify the taxonomy for single genome)')
@@ -39,7 +43,7 @@ def main():
     parser_taxonomy.add_argument('-o', '--output', type=str, help='path to the save the output of the taxonomy', required=True)
     parser_taxonomy.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
 
-    #################################################  Identifying the BGCs in the genome ############################################
+    #################################################  Parser for identifying the BGCs in the genome ############################################
 
     parser_bgc_identification = subparsers.add_parser('identify_bgcs', help='identify the BGCs in the genome')
     parser_bgc_identification.add_argument('-i', '--input_fasta', type=str, help='path to the input fasta file (Use this when you want to identify the BGCs for single genome)')
@@ -48,7 +52,7 @@ def main():
     parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the save the output of the bcg identification', required=True)
     parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
 
-    #################################################  Run the BGC clustering ############################################
+    #################################################  Parser for running the BGC clustering ############################################
 
     parser_bgc_clustering = subparsers.add_parser('bgc_clustering', help='Cluster BGCs to identify Gene cluster families (GCFs)')
     parser_bgc_clustering.add_argument('--input_dir', type=str, help='path to the input directory which contains all the bgcs for clustering')
@@ -60,7 +64,7 @@ def main():
     parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
 
-    #################################################  Run the whole pipeline together ############################################
+    #################################################  Parser for running the whole pipeline together ############################################
 
     parser_all_submodules = subparsers.add_parser('all_submodules', help='Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run')
     parser_all_submodules.add_argument('--reads', type=str, help='path to the input reads (.fastq format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
@@ -85,13 +89,16 @@ def main():
     if args.command == 'assemble':
 
         if args.batch_run == None:
-            if args.pacbio_raw != None:
+
+            """Performing the assembly for single strain"""
+
+            if args.pacbio_raw != None:  # If the input reads are in .bam file, then converting it to fastq
                 print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
                 perform_assembly_raw_reads(args)
 
-            elif args.pacbio_hifi != None:
+            elif args.pacbio_hifi != None:  # If the input reads are in .bam file, then converting it to fastq
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
@@ -127,6 +134,9 @@ def main():
                 perform_assembly_raw_reads_nanopore(args)
 
         else:
+
+            """Performing the assembly for multiple strains"""
+
             output_path = os.path.abspath(args.output)
             with open(args.batch_run) as batch_file:
                 for line in batch_file.readlines():
@@ -138,6 +148,10 @@ def main():
                     else:
                         genome_size = split_array[2].strip()
                     prefix = split_array[3].strip()
+
+                    if raw_reads_location.endswith('.bam'):
+                        print('\n\nSorry, we only accept reads in ".fastq" format for batch run. You can convert your reads into ".fastq" format using "samtools fastq your_input_bam_file > output_prefix.fastq". Then you can provide the paths to these ".fastq" files for running the pipeline\n\n')
+                        sys.exit(1)
 
                     if reads_type == "hifi_pacbio":
                         print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
@@ -190,15 +204,11 @@ def main():
         run_all_submodules(args)
 
 
-    # convert_reads(args)
-
     if hasattr(args, 'func'):
         args.func(args)
     else:
         parser.print_help()
         sys.exit(1)
-
-
 
 
 if __name__ == "__main__":

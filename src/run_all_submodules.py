@@ -1,3 +1,5 @@
+"""This file is used to run all the submodules of LoReMINE pipeline together"""
+
 from src.convert_reads_to_fastq import *
 from src.run_pacbio_raw_assembly import *
 from src.run_nanopore_raw_assembly import *
@@ -12,6 +14,7 @@ import os
 import glob
 from Bio import SeqIO
 import shutil
+import sys
 
 def run_all_submodules(args):
 
@@ -20,13 +23,15 @@ def run_all_submodules(args):
 
     if args.batch_run == None:
 
-        if args.pacbio_raw != None:
+        """Running the whole pipeline for a single strain"""
+
+        if args.pacbio_raw != None: # If the input reads are in .bam file, then converting it to fastq
             print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
             convert_reads(args)
             print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
             final_assembly_path = perform_assembly_raw_reads(args)
 
-        elif args.pacbio_hifi != None:
+        elif args.pacbio_hifi != None: # If the input reads are in .bam file, then converting it to fastq
             print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
             convert_reads(args)
             print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
@@ -78,6 +83,9 @@ def run_all_submodules(args):
             run_bigscape_clustering_all_submodules(args, bgc_output_path, basepath)
 
     else:
+
+        """Running the whole pipeline for a batch of strains"""
+
         with open(args.batch_run) as batch_file:
             for line in batch_file.readlines():
                 split_array = line.split('\t')
@@ -88,6 +96,10 @@ def run_all_submodules(args):
                 else:
                     genome_size = split_array[2].strip()
                 prefix = split_array[3].strip()
+
+                if raw_reads_location.endswith('.bam'):
+                    print('\n\nSorry, we only accept reads in ".fastq" format for batch run. You can convert your reads into ".fastq" format using "samtools fastq your_input_bam_file > output_prefix.fastq". Then you can provide the paths to these ".fastq" files for running the pipeline\n\n')
+                    sys.exit(1)
 
                 if reads_type == "hifi_pacbio":
                     print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
@@ -123,20 +135,22 @@ def run_all_submodules(args):
                 reheader_fasta(final_assembly_path, readjusted_assembly_header_path, prefix)
 
         taxonomy_multiple_genomes_all_submodules(args, basepath + '/assembly/best_assemblies/', basepath)
-        identify_bgcs_multiple_genomes_all_submodules(args, basepath + '/assembly/best_assemblies/', basepath)
+        all_bgcs_path = identify_bgcs_multiple_genomes_all_submodules(args, basepath + '/assembly/best_assemblies/', basepath)
 
 
 
         if args.clustering_type == "bigslice":
-            run_bigslice_clustering_all_submodules(args, basepath + '/identified_bgcs/identified_bgcs_all_strains/', basepath)
+            run_bigslice_clustering_all_submodules(args, all_bgcs_path, basepath)
         elif args.clustering_type == "bigscape":
-            run_bigscape_clustering_all_submodules(args, basepath + '/identified_bgcs/identified_bgcs_all_strains/', basepath)
+            run_bigscape_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
         elif args.clustering_type == "both":
-            run_bigslice_clustering_all_submodules(args, basepath + '/identified_bgcs/identified_bgcs_all_strains/', basepath)
-            run_bigscape_clustering_all_submodules(args, basepath + '/identified_bgcs/identified_bgcs_all_strains/', basepath)
+            run_bigslice_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
+            run_bigscape_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
 
 
 def reheader_fasta(input_fasta, output_fasta, prefix):
+
+    """Rename the contig headers of a best selected genome assembly file so that all contigs are numbered sequentially with "prefix" also added to each contig header"""
 
     append_text = "_" + prefix
 
