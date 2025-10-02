@@ -55,7 +55,7 @@ All required databases are now set up, and the **LoReMINE** pipeline is ready to
 
 ## Usage
 
-**LoReMINE** pipleine is now installed as a command-line tool. To get information about all the sub-modules, run:
+**LoReMINE** pipeline is now installed as a command-line tool. To get information about all the sub-modules, run:
 `````shell
 loremine --help
 `````
