@@ -22,9 +22,10 @@ def perform_assembly_raw_reads_nanopore(args):
         os.system(flye_command)
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
-            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
+            quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
             os.system(quast_command)
-            print("Assembly stats can be found here: " + assembly_basepath + "/flye/quast/report.pdf" + "\n\n")
+            generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
+            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
@@ -79,9 +80,10 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
         os.system(flye_command)
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
-            quast_command = "quast -o " + assembly_basepath + "/flye/quast " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
+            quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
             os.system(quast_command)
-            print("Assembly stats can be found here: " + assembly_basepath + "/flye/quast/report.pdf" + "\n\n")
+            generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
+            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
