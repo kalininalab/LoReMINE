@@ -126,10 +126,40 @@ options:
 
 - ````` pacbio-hifi `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio HiFi reads
 
--  ````` batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. As an input, it requires a **".tsv"** file which should contain 4 columns
+-  ````` batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. An example file named `````input_batch_run.tsv````` is provided in the repository and can be used as a template for this parameter. As an input, it requires a **".tsv"** file which should contain 4 columns
     - 1st column is the path to raw reads (`````.fastq````` or `````.fastq.gz`````) file. It does not accept reads in `````.bam````` format. To convert the reads from `````.bam````` to `````.fastq````` format, you can use the following command `````samtools fastq input_filename.bam > output_filename.fastq`````
     - 2nd column should contain the type of reads (`````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````)
     - 3rd column should contain the genome size (if you already know, else the deafult is 5000000 bp)
     - 4th column should specify the **"prefix"** to use while saving the strain's assembly
     
 - ````` -g `````: Use this option to input the estimated genome size of the strain whose assembly you are performing. It is used to estimate coverage and guide assembly algorithms while performing the assembly. For e.g: if your organism's genome size is `````10 Mbp (10 mega base pairs)`````, it should be given as `````10000000`````. Default value is `````5 Mbp (5000000 bp)`````
+
+- ````` -o `````: Path to the output directory where you want to save the assembly output
+
+- ````` -t `````: Number of threads to use while running the assembly. Default value is `````1`````
+
+- ````` --prefix `````: Specifies the prefix to be used for naming the assembly output files. **This parameter is mandatory**. If you are performing batch assemblies instead of a single-strain assembly, use **"NA"** as the value for this parameter
+
+- ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
+
+## Taxonomy
+This submodule is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
+`````shell
+loremine taxonomy --help
+`````
+this will produce the following output
+`````shell
+
+usage: loremine taxonomy [-h] [-i INPUT_FASTA] [--input_dir INPUT_DIR] -o OUTPUT [-t THREADS]
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT_FASTA, --input_fasta INPUT_FASTA
+                        path to the input fasta file (Use this when you want to identify the taxonomy for single genome)
+  --input_dir INPUT_DIR
+                        path to the input directory containing multiple fasta files (Use this option to identify the taxonomy for multiple genomes)
+  -o OUTPUT, --output OUTPUT
+                        path to the save the output of the taxonomy
+  -t THREADS, --threads THREADS
+                        number of threads to use, default = 1
+`````
