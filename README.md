@@ -84,7 +84,7 @@ positional arguments:
 - ````` all_submodules: Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run ````` this sub-module is used to run all the above 4 submodules together
 
 # Usage of individual submodules
-## Assemble
+## assemble
 This submodule is used to perform the genome assembly using the long-reads from both Pacbio (raw as well as HiFi) and Nanopore. To see all the available options, run the following command
 `````shell
 loremine assemble --help
@@ -142,7 +142,7 @@ options:
 
 - ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
-## Taxonomy
+## taxonomy
 This submodule is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
 `````shell
 loremine taxonomy --help
@@ -163,3 +163,42 @@ options:
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
 `````
+- ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the taxonomy. Use this option to determine the taxonomy of a single genome
+  
+- ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes whose taxonomy you want to identify. Use this option to determine the taxonomy of multiple genomes in a single run
+
+- ````` -o `````: Path to the output directory where you want to save the taxonomy output. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the taxonomy results will be available in the `````given_output_folder_path/taxonomy/strainame/````` directory. You can find a summary of the taxonomy identified using both the NCBI and GTDB databases in the `````identified_taxonomy.txt````` file within the output directory, rather than checking individual output files
+
+- ````` -t `````: Number of threads to use while identifying the taxonomy. Default value is `````1`````
+
+## identify_bgcs
+This submodule is responsible for identifying the BGCs in the input genome. To see all the available options, run the following command
+`````shell
+loremine identify_bgcs --help
+`````
+this will produce the following output
+`````shell
+
+usage: loremine identify_bgcs [-h] [-i INPUT_FASTA] [--input_dir INPUT_DIR] [--db_path DB_PATH] -o OUTPUT [-t THREADS]
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT_FASTA, --input_fasta INPUT_FASTA
+                        path to the input fasta file (Use this when you want to identify the BGCs for single genome)
+  --input_dir INPUT_DIR
+                        path to the input directory containing multiple fasta files (Use this option to identify the BGCs for multiple genomes)
+  --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
+  -o OUTPUT, --output OUTPUT
+                        path to the save the output of the bcg identification
+  -t THREADS, --threads THREADS
+                        number of threads to use, default = 1
+`````
+- ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the BGCs. Use this option to idenitfy the BGCs of a single genome
+  
+- ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes for which you want to identify BGCs. Use this option to detect BGCs across multiple genomes in a single run
+
+- ````` --db_path `````: Path to the directory where the antiSMASH databases are downloaded (provide the full path to the directory containing subdirectories such as clusterblast, knownclusterblast, pfam, etc...). **Use this option only if you downloaded the antiSMASH databases to a custom location**. If you did not specify a custom location during the database download, **you can omit this parameter**, as the databases will be automatically fetched from the default directory within your conda environment
+
+- ````` -o `````: Path to the output directory where you want to save the output of identified bgcs. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the identified BGCs will be available in the `````given_output_folder_path/identified_bgcs/strainame/````` directory
+
+- ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
