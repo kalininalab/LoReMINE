@@ -202,3 +202,47 @@ options:
 - ````` -o `````: Path to the output directory where you want to save the output of identified bgcs. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the identified BGCs will be available in the `````given_output_folder_path/identified_bgcs/strainame/````` directory
 
 - ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
+
+## bgc_clustering
+This submodule is responsible for clustering the BGCs to identify gene cluster families (GCFs). To see all the available options, run the following command
+`````shell
+loremine bgc_clustering --help
+`````
+this will produce the following output
+`````shell
+
+usage: loremine bgc_clustering [-h] [--input_dir INPUT_DIR] [--mibig]
+                               [-o OUTPUT] --clustering_type CLUSTERING_TYPE
+                               [-t THREADS] --pfam_dir PFAM_DIR
+                               [--bigslice_cutoff BIGSLICE_CUTOFF]
+                               [--bigscape_cutoff BIGSCAPE_CUTOFF]
+
+options:
+  -h, --help            show this help message and exit
+  --input_dir INPUT_DIR
+                        path to the input directory which contains all the
+                        bgcs for clustering
+  --mibig               Use this option when you want to include MiBiG BGCs
+                        for clustering
+  -o OUTPUT, --output OUTPUT
+                        path to the output directory which will contain the
+                        clustering output
+  --clustering_type CLUSTERING_TYPE
+                        Possible values are "bigslice", "bigscape" or "both"
+  -t THREADS, --threads THREADS
+                        number of threads to use, default = 1
+  --pfam_dir PFAM_DIR   Path to the directory where you have extracted the
+                        Pfam database. The complete path to the "Pfam-A.hmm"
+                        file
+  --bigslice_cutoff BIGSLICE_CUTOFF
+                        BiG-SLiCE cutoff value (default = 0.4)
+  --bigscape_cutoff BIGSCAPE_CUTOFF
+                        BiG-SCAPE cutoff value (default = 0.5)
+`````
+- ````` --input_dir `````: Path to the input directory containing all BGCs (.gbk) files to be clustered into Gene Cluster Families (GCFs)
+
+- ````` --mibig `````: This parameter indicates whether to include MiBiG (v4.0) BGCs in the clustering process
+
+- ````` --clustering_type `````: This parameter specifies the tool(s) to use for clustering BGCs into Gene Cluster Families (GCFs). Possible values are `````bigscape`````, `````bigslice`````, or `````both`````. Default value is `````both`````
+
+- ````` -o `````: Path to the output directory where you want to save the clustering output.
