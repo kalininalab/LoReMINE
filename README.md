@@ -1,6 +1,6 @@
 # LoReMINE: Long Read-based Microbial genome mining pipeline
 
-LoreMiNE (Long Read-based Microbial genome mining pipeline) is an end-to-end pipeline for microbial natural product discovery directly from long-read sequencing data. LoreMiNE integrates multiple modules into a unified pipeline: (i) de-novo genome assembly using multiple long-read assemblers with automated selection of the highest-quality assembly, (ii) taxonomic classification, (iii) Biosynthetic gene clusters (BGC) detection, and (iv) clustering of identified BGCs to facilitate comparative analysis across different databases and taxa. By combining these steps into a unified pipeline, LoreMiNE facilitates comprehensive exploration of natural product diversity which has the potential to yield novel drug candidates.
+LoreMiNE (Long Read-based Microbial genome mining pipeline) is an end-to-end pipeline for microbial natural product discovery directly from long-read sequencing data. It integrates multiple sub-modules into a unified pipeline: (i) de-novo genome assembly using multiple long-read assemblers with automated selection of the highest-quality assembly, (ii) taxonomic classification, (iii) Biosynthetic gene clusters (BGC) detection, and (iv) clustering of BGCs to idenitfy gene cluster families (GCFs) which facilitates comparative analysis across different databases and taxa. By combining these steps into a unified pipeline, LoreMiNE facilitates comprehensive exploration of natural product diversity which has the potential to yield novel drug candidates.
 
 
 # Installation
@@ -245,4 +245,57 @@ options:
 
 - ````` --clustering_type `````: This parameter specifies the tool(s) to use for clustering BGCs into Gene Cluster Families (GCFs). Possible values are `````bigscape`````, `````bigslice`````, or `````both`````. Default value is `````both`````
 
-- ````` -o `````: Path to the output directory where you want to save the clustering output.
+- ````` -o `````: Path to the output directory where you want to save the clustering output. Suppose, If you have used both bigscape and bigslice for clustering, then the clustering output can be found in `````given_output_folder_path/clustering/bigscape/output/````` and `````given_output_folder_path/clustering/bigslice/output/````` directories respectively. Please refer the file `````output_clusters.tsv````` in the output directory for the final clustering output. if 2 or more bgcs have **same id** in **"GCF_id"** column for bigslice output and **"Family"** column in bigscape output, it means that they belong to same GCF
+
+- ````` -t `````: Number of threads to use while clustering the BGCs. Default value is `````1`````
+
+- ````` --pfam_dir `````: Complete path to the directory where you have extracted the Pfam database as it will be used for BiG-SCAPE clustering. For e.g: I have extracted my Pfam database in a loremine environment directory, so I provide this `````~/anaconda3/envs/loremine/BiG-SCAPE/Pfam_dir/Pfam-A.hmm````` as as input
+
+- ````` --bigslice_cutoff `````: Cut-off to use for clustering using BiG-SliCE. Default value is `````0.4`````. **Increasing** the cut-off will result in smaller & more clusters, while **decreasing** the cut-off will result in larger & fewer clusters
+
+- ````` --bigscape_cutoff `````: Cut-off to use for clustering using BiG-SCAPE. Default value is `````0.5`````. **Decreasing** the cut-off will result in smaller & more clusters, while **increasing** the cut-off will result in larger & fewer clusters
+
+## all_submodules
+This submodule executes the complete pipeline in a single run. It takes raw sequencing reads (from one or multiple strains) as input, performs genome assembly, taxonomic identification, BGC detection, and BGC clustering to identify Gene Cluster Families (GCFs).To see all the available options, run the following command
+`````shell
+loremine all_submodules --help
+`````
+this will produce the following output
+`````shell
+
+usage: loremine all_submodules [-h] [--reads READS] [--reads_type READS_TYPE] [--pacbio-raw PACBIO_RAW] [--pacbio-hifi PACBIO_HIFI] [--batch_run BATCH_RUN] [-g GENOME_SIZE] -o OUTPUT [-t THREADS] --prefix PREFIX [--alt_param ALT_PARAM] [--db_path DB_PATH] [--mibig]
+                               --clustering_type CLUSTERING_TYPE --pfam_dir PFAM_DIR [--bigslice_cutoff BIGSLICE_CUTOFF] [--bigscape_cutoff BIGSCAPE_CUTOFF]
+
+options:
+  -h, --help            show this help message and exit
+  --reads READS         path to the input reads (.fastq format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads_type READS_TYPE
+                        type of reads in the ".fastq" file. Possible inputs are "raw_pacbio", "raw_nanopore" and "hifi_pacbio"
+  --pacbio-raw PACBIO_RAW
+                        path to the input Pacbio raw reads (.bam file)
+  --pacbio-hifi PACBIO_HIFI
+                        path to the input Pacbio HiFi reads (.bam file)
+  --batch_run BATCH_RUN
+                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (deafult = 5000000 bp), prefix). No header is assumed, so
+                        start from first line itself
+  -g GENOME_SIZE, --genome-size GENOME_SIZE
+                        estimated genome size (default = 5000000 bp (5Mbp))
+  -o OUTPUT, --output OUTPUT
+                        path to the save the output of the assembly
+  -t THREADS, --threads THREADS
+                        number of threads to use, default = 1
+  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field
+  --alt_param ALT_PARAM
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
+                        reads
+  --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
+  --mibig               Use this option when you want to include MiBiG BGCs for clustering
+  --clustering_type CLUSTERING_TYPE
+                        Possible values are "bigslice", "bigscape" or "both"
+  --pfam_dir PFAM_DIR   Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file
+  --bigslice_cutoff BIGSLICE_CUTOFF
+                        BiG-SLiCE cutoff value (default = 0.4)
+  --bigscape_cutoff BIGSCAPE_CUTOFF
+                        BiG-SCAPE cutoff value (default = 0.5)
+`````
+All parameters used in this submodule have been thoroughly described in the respective submodule sections above. Please refer to the corresponding documentation for detailed explanations.
