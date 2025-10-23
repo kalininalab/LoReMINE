@@ -228,7 +228,7 @@ options:
                         path to the output directory which will contain the
                         clustering output
   --clustering_type CLUSTERING_TYPE
-                        Possible values are "bigslice", "bigscape" or "both"
+                        tool to use for clustering BGCs into GCFs. Possible values are "bigslice", "bigscape" or "both"
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --pfam_dir PFAM_DIR   Path to the directory where you have extracted the
@@ -291,7 +291,7 @@ options:
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   --mibig               Use this option when you want to include MiBiG BGCs for clustering
   --clustering_type CLUSTERING_TYPE
-                        Possible values are "bigslice", "bigscape" or "both"
+                        tool to use for clustering BGCs into GCFs. Possible values are "bigslice", "bigscape" or "both"
   --pfam_dir PFAM_DIR   Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file
   --bigslice_cutoff BIGSLICE_CUTOFF
                         BiG-SLiCE cutoff value (default = 0.4)
