@@ -18,8 +18,14 @@ Or to install it into the already existing environment (for e.g: loremine):
 
 `````shell
 conda create -n loremine
-conda activate
+conda activate loremine
 conda install -c conda-forge -c kalininalab -c bioconda loremine
+`````
+Or you can aslo use mamba instead of conda (usually faster):
+`````shell
+mamba create -n loremine
+mamba activate loremine
+mamba install -c conda-forge -c kalininalab -c bioconda loremine
 `````
 We still need to install [BiG-SCAPE](https://github.com/medema-group/BiG-SCAPE) before using the LoReMINE pipeline. You can install it anywhere, but we prefer to install in the same conda environment directory (````` ~/anaconda3/envs/loremine/ `````) so that all tools are in one place. To install [BiG-SCAPE](https://github.com/medema-group/BiG-SCAPE), follow the instructions given below
 
@@ -32,7 +38,7 @@ pip install .
 
 # Setting up local databases
 
-We still need to setup the local databases for before using the LoReMINE pipeline. For DFAST_QC, we will download the compact version (````` DQC_REFERENCE_COMPACT `````, <1.5GB) of the database as the full version (````` DQC_REFERENCE_FULL `````) is quite huge (>100 GB). If you wnat to still download the full version, refer [here](https://github.com/nigyta/dfast_qc#quick-set-up-recommended). To download the compact version of the database, run the below command
+We still need to setup the local databases before using the LoReMINE pipeline. For DFAST_QC, we will download the compact version (````` DQC_REFERENCE_COMPACT `````, <1.5GB) of the database as the full version (````` DQC_REFERENCE_FULL `````) is quite huge (>100 GB). If you want to still download the full version, refer [here](https://github.com/nigyta/dfast_qc#quick-set-up-recommended). To download the compact version of the database, run the below command:
 `````shell
 dqc_ref_manager.py download
 `````
@@ -62,7 +68,7 @@ loremine --help
 this will produce the following output
 `````shell
 
-LoReMINE: Long read-based microbial genome mining pipeline
+LoReMINE: Long Read-based Microbial genome mining pipeline
 
 positional arguments:
   {assemble,taxonomy,identify_bgcs,bgc_clustering,all_submodules}
@@ -81,11 +87,11 @@ positional arguments:
 
 - ````` bgc_clustering: Cluster BGCs to identify Gene cluster families (GCFs) ````` this sub-module is used for clustering the input BGCs using both BiG-SLiCE & BiG-SCAPE to identify the GCFs. It also allows the user to include the [MiBiG](https://mibig.secondarymetabolites.org/) BGCs for comparision
 
-- ````` all_submodules: Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run ````` this sub-module is used to run all the above 4 submodules together
+- ````` all_submodules: Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run ````` this sub-module is used to run all the above 4 submodules together in a single run
 
-# Usage of individual submodules
+# Usage of individual sub-modules
 ## assemble
-This submodule is used to perform the genome assembly using the long-reads from both Pacbio (raw as well as HiFi) and Nanopore. To see all the available options, run the following command
+This sub-module is used to perform the genome assembly using the long-reads from both Pacbio (raw as well as HiFi) and Nanopore. To see all the available options, run the following command
 `````shell
 loremine assemble --help
 `````
@@ -96,9 +102,9 @@ usage: loremine assemble [-h] [--reads READS] [--reads_type READS_TYPE] [--pacbi
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" file. Possible inputs are "raw_pacbio", "raw_nanopore" and "hifi_pacbio"
+                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
   --pacbio-raw PACBIO_RAW
                         path to the input Pacbio raw reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
@@ -112,15 +118,15 @@ options:
                         path to the save the output of the assembly
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
-  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field
+  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
                         reads
 `````
 
 - ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-raw````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
   
-- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible option for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly. If you have `````hifi_pacbio````` reads, then the assembly is performed using 3 different assemblers and the best assembly is automatically selected by the pipeline. The best assembly selected by the pipeline can be found in `````chosen_best_assembly.txt````` file which can be found inside the `````given_output_folder_path/assembly/given_prefix/````` folder
+- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly. If you have `````hifi_pacbio````` reads, then the assembly is performed using 3 different assemblers and the best assembly is automatically selected by the pipeline. The best assembly selected by the pipeline can be found in `````chosen_best_assembly.txt````` file which can be found inside the `````given_output_folder_path/assembly/given_prefix/````` folder
 
 - ````` pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio raw reads
 
@@ -143,7 +149,7 @@ options:
 - ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
 ## taxonomy
-This submodule is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
+This sub-module is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
 `````shell
 loremine taxonomy --help
 `````
@@ -172,7 +178,7 @@ options:
 - ````` -t `````: Number of threads to use while identifying the taxonomy. Default value is `````1`````
 
 ## identify_bgcs
-This submodule is responsible for identifying the BGCs in the input genome. To see all the available options, run the following command
+This sub-module is responsible for identifying the BGCs in the input genome. To see all the available options, run the following command
 `````shell
 loremine identify_bgcs --help
 `````
@@ -204,7 +210,7 @@ options:
 - ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
 
 ## bgc_clustering
-This submodule is responsible for clustering the BGCs to identify gene cluster families (GCFs). To see all the available options, run the following command
+This sub-module is responsible for clustering the BGCs to identify gene cluster families (GCFs). To see all the available options, run the following command
 `````shell
 loremine bgc_clustering --help
 `````
@@ -243,7 +249,7 @@ options:
 
 - ````` --mibig `````: This parameter indicates whether to include MiBiG (v4.0) BGCs in the clustering process
 
-- ````` --clustering_type `````: This parameter specifies the tool(s) to use for clustering BGCs into Gene Cluster Families (GCFs). Possible values are `````bigscape`````, `````bigslice`````, or `````both`````. Default value is `````both`````
+- ````` --clustering_type `````: This parameter specifies the tool(s) to use for clustering BGCs into Gene Cluster Families (GCFs). Possible inputs are `````bigscape`````, `````bigslice`````, or `````both`````. Default value is `````both`````
 
 - ````` -o `````: Path to the output directory where you want to save the clustering output. Suppose, If you have used both bigscape and bigslice for clustering, then the clustering output can be found in `````given_output_folder_path/clustering/bigscape/output/````` and `````given_output_folder_path/clustering/bigslice/output/````` directories respectively. Please refer the file `````output_clusters.tsv````` in the output directory for the final clustering output. if 2 or more bgcs have **same id** in **"GCF_id"** column for bigslice output and **"Family"** column in bigscape output, it means that they belong to same GCF
 
@@ -256,7 +262,7 @@ options:
 - ````` --bigscape_cutoff `````: Cut-off to use for clustering using BiG-SCAPE. Default value is `````0.5`````. **Decreasing** the cut-off will result in smaller & more clusters, while **increasing** the cut-off will result in larger & fewer clusters
 
 ## all_submodules
-This submodule executes the complete pipeline in a single run. It takes raw sequencing reads (from one or multiple strains) as input, performs genome assembly, taxonomic identification, BGC detection, and BGC clustering to identify Gene Cluster Families (GCFs).To see all the available options, run the following command
+This sub-module executes the complete pipeline in a single run. It takes raw sequencing reads (from one or multiple strains) as input, performs genome assembly, taxonomic identification, BGC detection, and BGC clustering to identify Gene Cluster Families (GCFs).To see all the available options, run the following command
 `````shell
 loremine all_submodules --help
 `````
@@ -268,9 +274,9 @@ usage: loremine all_submodules [-h] [--reads READS] [--reads_type READS_TYPE] [-
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" file. Possible inputs are "raw_pacbio", "raw_nanopore" and "hifi_pacbio"
+                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
   --pacbio-raw PACBIO_RAW
                         path to the input Pacbio raw reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
@@ -284,9 +290,9 @@ options:
                         path to the save the output of the assembly
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
-  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field
+  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
                         reads
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   --mibig               Use this option when you want to include MiBiG BGCs for clustering
