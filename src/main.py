@@ -18,22 +18,22 @@ from pathlib import Path
 
 def main():
     # Create the parser
-    parser = argparse.ArgumentParser(prog="loremine", description="LoReMINE: Long read-based microbial genome mining pipeline")
+    parser = argparse.ArgumentParser(prog="loremine", description="LoReMINE: Long Read-based Microbial genome mining pipeline")
 
     #################################################  Parser for running the genome assembly ############################################
 
     subparsers = parser.add_subparsers(dest='command', required=True)
     parser_assemble = subparsers.add_parser('assemble', help='run automated genome assembly pipeline')
-    parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
-    parser_assemble.add_argument('--reads_type',  type=str, help='type of reads in the \".fastq\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" and \"hifi_pacbio\"')
+    parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
+    parser_assemble.add_argument('--reads_type',  type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
     parser_assemble.add_argument('--pacbio-raw',type=str, help='path to the input Pacbio raw reads (.bam file)')
     parser_assemble.add_argument('--pacbio-hifi',type=str, help='path to the input Pacbio HiFi reads (.bam file)')
     parser_assemble.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_assemble.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))',default="5000000")
     parser_assemble.add_argument('-o', '--output',type=str, help='path to the save the output of the assembly', required=True)
     parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
-    parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field', required=True)
-    parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
+    parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
+    parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
 
     #################################################  Parser for identifying the taxonomy of the genome ############################################
 
@@ -49,7 +49,7 @@ def main():
     parser_bgc_identification.add_argument('-i', '--input_fasta', type=str, help='path to the input fasta file (Use this when you want to identify the BGCs for single genome)')
     parser_bgc_identification.add_argument('--input_dir', type=str, help='path to the input directory containing multiple fasta files (Use this option to identify the BGCs for multiple genomes)')
     parser_bgc_identification.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
-    parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the save the output of the bcg identification', required=True)
+    parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the output directory where you want to save the identified BGCs', required=True)
     parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
 
     #################################################  Parser for running the BGC clustering ############################################
@@ -58,29 +58,29 @@ def main():
     parser_bgc_clustering.add_argument('--input_dir', type=str, help='path to the input directory which contains all the bgcs for clustering')
     parser_bgc_clustering.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
     parser_bgc_clustering.add_argument('-o', '--output', type=str, help='path to the output directory which will contain the clustering output')
-    parser_bgc_clustering.add_argument('--clustering_type', type=str, help='Possible values are \"bigslice\", \"bigscape\" or \"both\"', required=True, default = "both")
+    parser_bgc_clustering.add_argument('--clustering_type', type=str, help='tool to use for clustering BGCs into GCFs. Possible inputs are \"bigslice\", \"bigscape\" or \"both\" (default = both)', required=True, default = "both")
     parser_bgc_clustering.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
-    parser_bgc_clustering.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file', required=True)
+    parser_bgc_clustering.add_argument('--pfam_dir', type=str, help='path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file', required=True)
     parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
 
     #################################################  Parser for running the whole pipeline together ############################################
 
     parser_all_submodules = subparsers.add_parser('all_submodules', help='Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run')
-    parser_all_submodules.add_argument('--reads', type=str, help='path to the input reads (.fastq format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
-    parser_all_submodules.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" and \"hifi_pacbio\"')
+    parser_all_submodules.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
+    parser_all_submodules.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
     parser_all_submodules.add_argument('--pacbio-raw', type=str, help='path to the input Pacbio raw reads (.bam file)')
     parser_all_submodules.add_argument('--pacbio-hifi', type=str, help='path to the input Pacbio HiFi reads (.bam file)')
     parser_all_submodules.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_all_submodules.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))', default="5000000")
-    parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the assembly', required=True)
+    parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the pipeline', required=True)
     parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
-    parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field', required=True)
-    parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
+    parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
+    parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
     parser_all_submodules.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_all_submodules.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
-    parser_all_submodules.add_argument('--clustering_type', type=str, help='Possible values are \"bigslice\", \"bigscape\" or \"both\"', required=True, default = "both")
-    parser_all_submodules.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file', required=True)
+    parser_all_submodules.add_argument('--clustering_type', type=str, help='tool to use for clustering BGCs into GCFs. Possible inputs are \"bigslice\", \"bigscape\" or \"both\" (default = both)', required=True, default = "both")
+    parser_all_submodules.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file', required=True)
     parser_all_submodules.add_argument('--bigslice_cutoff', type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_all_submodules.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
 
