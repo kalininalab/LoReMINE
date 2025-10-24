@@ -135,7 +135,7 @@ options:
 -  ````` batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. An example file named `````input_batch_run.tsv````` is provided in the repository and can be used as a template for this parameter. As an input, it requires a **".tsv"** file which should contain 4 columns
     - 1st column is the path to raw reads (`````.fastq````` or `````.fastq.gz`````) file. It does not accept reads in `````.bam````` format. To convert the reads from `````.bam````` to `````.fastq````` format, you can use the following command `````samtools fastq input_filename.bam > output_filename.fastq`````
     - 2nd column should contain the type of reads (`````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````)
-    - 3rd column should contain the genome size (if you already know, else the deafult is 5000000 bp)
+    - 3rd column should contain the genome size (if you already know, else the default is 5000000 bp)
     - 4th column should specify the **"prefix"** to use while saving the strain's assembly
     
 - ````` -g `````: Use this option to input the estimated genome size of the strain whose assembly you are performing. It is used to estimate coverage and guide assembly algorithms while performing the assembly. For e.g: if your organism's genome size is `````10 Mbp (10 mega base pairs)`````, it should be given as `````10000000`````. Default value is `````5 Mbp (5000000 bp)`````
@@ -173,7 +173,7 @@ options:
   
 - ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes whose taxonomy you want to identify. Use this option to determine the taxonomy of multiple genomes in a single run
 
-- ````` -o `````: Path to the output directory where you want to save the taxonomy output. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the taxonomy results will be available in the `````given_output_folder_path/taxonomy/strainame/````` directory. You can find a summary of the taxonomy identified using both the NCBI and GTDB databases in the `````identified_taxonomy.txt````` file within the output directory, rather than checking individual output files
+- ````` -o `````: Path to the output directory where you want to save the taxonomy output. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the taxonomy results will be available in the `````given_output_folder_path/taxonomy/strainame/````` directory. You can find a summary of the taxonomy identified using both the NCBI and GTDB databases in the `````identified_taxonomy.txt````` file within the output directory (described in previous sentence), rather than checking individual output files
 
 - ````` -t `````: Number of threads to use while identifying the taxonomy. Default value is `````1`````
 
@@ -195,7 +195,7 @@ options:
                         path to the input directory containing multiple fasta files (Use this option to identify the BGCs for multiple genomes)
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   -o OUTPUT, --output OUTPUT
-                        path to the save the output of the bcg identification
+                        path to the output directory where you want to save the identified BGCs
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
 `````
@@ -203,9 +203,9 @@ options:
   
 - ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes for which you want to identify BGCs. Use this option to detect BGCs across multiple genomes in a single run
 
-- ````` --db_path `````: Path to the directory where the antiSMASH databases are downloaded (provide the full path to the directory containing subdirectories such as clusterblast, knownclusterblast, pfam, etc...). **Use this option only if you downloaded the antiSMASH databases to a custom location**. If you did not specify a custom location during the database download, **you can omit this parameter**, as the databases will be automatically fetched from the default directory within your conda environment
+- ````` --db_path `````: Path to the directory where the antiSMASH databases are downloaded (provide the full path to the directory containing subdirectories such as clusterblast, knownclusterblast, pfam, etc...). **Use this option only if you downloaded the antiSMASH databases at a custom location**. If you did not specify a custom location during downloading the antiSMASH database, **you can omit this parameter**, as the databases will be automatically fetched from the default directory within your conda environment
 
-- ````` -o `````: Path to the output directory where you want to save the output of identified bgcs. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the identified BGCs will be available in the `````given_output_folder_path/identified_bgcs/strainame/````` directory
+- ````` -o `````: Path to the output directory where you want to save the output of identified BGCs. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the identified BGCs will be available in the `````given_output_folder_path/identified_bgcs/strainame/````` directory
 
 - ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
 
@@ -234,24 +234,24 @@ options:
                         path to the output directory which will contain the
                         clustering output
   --clustering_type CLUSTERING_TYPE
-                        tool to use for clustering BGCs into GCFs. Possible values are "bigslice", "bigscape" or "both"
+                        tool to use for clustering BGCs into GCFs. Possible inputs are "bigslice", "bigscape" or "both" (default = both)
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --pfam_dir PFAM_DIR   Path to the directory where you have extracted the
-                        Pfam database. The complete path to the "Pfam-A.hmm"
+                        Pfam database. Please provide the complete path to the "Pfam-A.hmm"
                         file
   --bigslice_cutoff BIGSLICE_CUTOFF
                         BiG-SLiCE cutoff value (default = 0.4)
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
 `````
-- ````` --input_dir `````: Path to the input directory containing all BGCs (.gbk) files to be clustered into Gene Cluster Families (GCFs)
+- ````` --input_dir `````: Path to the input directory containing all BGC (.gbk) files to be clustered into Gene Cluster Families (GCFs)
 
-- ````` --mibig `````: This parameter indicates whether to include MiBiG (v4.0) BGCs in the clustering process
+- ````` --mibig `````: This parameter indicates whether to include MiBiG (v4.0) BGCs for clustering or not. Using this parameter will **include MiBiG BGCs** along with input BGCs for clustering
 
 - ````` --clustering_type `````: This parameter specifies the tool(s) to use for clustering BGCs into Gene Cluster Families (GCFs). Possible inputs are `````bigscape`````, `````bigslice`````, or `````both`````. Default value is `````both`````
 
-- ````` -o `````: Path to the output directory where you want to save the clustering output. Suppose, If you have used both bigscape and bigslice for clustering, then the clustering output can be found in `````given_output_folder_path/clustering/bigscape/output/````` and `````given_output_folder_path/clustering/bigslice/output/````` directories respectively. Please refer the file `````output_clusters.tsv````` in the output directory for the final clustering output. if 2 or more bgcs have **same id** in **"GCF_id"** column for bigslice output and **"Family"** column in bigscape output, it means that they belong to same GCF
+- ````` -o `````: Path to the output directory where you want to save the clustering output. Suppose, If you have used both bigscape and bigslice for clustering, then the clustering output can be found in `````given_output_folder_path/clustering/bigscape/output/````` and `````given_output_folder_path/clustering/bigslice/output/````` directories respectively. Please refer the file `````output_clusters.tsv````` in both the output directories for the final clustering output. If 2 or more bgcs have **same id** in **"GCF_id"** column for bigslice output and **"Family"** column in bigscape output, it means that they belong to same GCF
 
 - ````` -t `````: Number of threads to use while clustering the BGCs. Default value is `````1`````
 
@@ -287,7 +287,7 @@ options:
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
   -o OUTPUT, --output OUTPUT
-                        path to the save the output of the assembly
+                        path to the save the output of the pipeline
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
@@ -297,11 +297,14 @@ options:
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   --mibig               Use this option when you want to include MiBiG BGCs for clustering
   --clustering_type CLUSTERING_TYPE
-                        tool to use for clustering BGCs into GCFs. Possible values are "bigslice", "bigscape" or "both"
-  --pfam_dir PFAM_DIR   Path to the directory where you have extracted the Pfam database. The complete path to the "Pfam-A.hmm" file
+                        tool to use for clustering BGCs into GCFs. Possible inputs are "bigslice", "bigscape" or "both" (default = both)
+  --pfam_dir PFAM_DIR   Path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file
   --bigslice_cutoff BIGSLICE_CUTOFF
                         BiG-SLiCE cutoff value (default = 0.4)
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
 `````
-All parameters used in this submodule have been thoroughly described in the respective submodule sections above. Please refer to the corresponding documentation for detailed explanations.
+
+- ````` -o `````: Path to the output directory where you want to save the output of the pipeline. The output of all sub-modules will be saved in individual sub-module directories (`````given_output_folder_path/assembly/`````, `````given_output_folder_path/taxonomy/`````, `````given_output_folder_path/identified_bgcs/````` and `````given_output_folder_path/clustering/`````)
+
+All other parameters used in this submodule have been thoroughly described in the respective sub-module sections above. Please refer to the corresponding documentation for detailed explanations.
