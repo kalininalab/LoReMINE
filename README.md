@@ -126,7 +126,7 @@ options:
 
 - ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-raw````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
   
-- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly. If you have `````hifi_pacbio````` reads, then the assembly is performed using 3 different assemblers and the best assembly is automatically selected by the pipeline. The best assembly selected by the pipeline can be found in `````chosen_best_assembly.txt````` file which can be found inside the `````given_output_folder_path/assembly/given_prefix/````` folder
+- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly
 
 - ````` pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio raw reads
 
@@ -140,7 +140,7 @@ options:
     
 - ````` -g `````: Use this option to input the estimated genome size of the strain whose assembly you are performing. It is used to estimate coverage and guide assembly algorithms while performing the assembly. For e.g: if your organism's genome size is `````10 Mbp (10 mega base pairs)`````, it should be given as `````10000000`````. Default value is `````5 Mbp (5000000 bp)`````
 
-- ````` -o `````: Path to the output directory where you want to save the assembly output
+- ````` -o `````: Path to the output directory where you want to save the assembly output. After assembly completion, the assembly statistics and contig circularity information (whether a contig is circular or linear) are provided in the `````report.tsv````` and `````circularity.tsv````` files within the `````given_output_folder_path/assembly/given_prefix/quast_outputs/````` folder, while assembly completeness and contamination are reported in `````checkm_summary.tsv````` file inside the `````given_output_folder_path/assembly/given_prefix/checkm_output/````` folder. If you have Pacbio HiFi reads or you used alternate parameters (`````--alt_param`````) for performing the assembly using Pacbio & Nanopore raw reads, the pipeline generates multiple assemblies using different assemblers or parameter settings and automatically selects the best assembly. The best selected assembly, along with its completeness, contamination, and summary statistics, is detailed in `````chosen_best_assembly.txt````` file which can be found inside the `````given_output_folder_path/assembly/given_prefix/````` folder
 
 - ````` -t `````: Number of threads to use while running the assembly. Default value is `````1`````
 
