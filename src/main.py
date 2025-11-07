@@ -96,7 +96,7 @@ def main():
                 print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                perform_assembly_raw_reads(args)
+                perform_assembly_raw_reads_pacbio(args)
 
             elif args.pacbio_hifi != None:  # If the input reads are in .bam file, then converting it to fastq
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
@@ -120,7 +120,9 @@ def main():
             elif args.reads != None and args.reads_type == "hifi_pacbio":
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
-                shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+                suffixes = Path(args.reads).suffixes
+                raw_reads_filename = args.prefix + "".join(suffixes)
+                shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
                 perform_assembly_hifi_reads(args)
 
@@ -155,14 +157,18 @@ def main():
 
                     if reads_type == "hifi_pacbio":
                         print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
-                        os.makedirs(output_path + "/raw_reads")
-                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + prefix + ".fastq")
+                        if not os.path.exists(output_path + "/raw_reads"):
+                            os.makedirs(output_path + "/raw_reads")
+                        suffixes = Path(raw_reads_location).suffixes
+                        raw_reads_filename = prefix + "".join(suffixes)
+                        shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
                         perform_assembly_hifi_reads_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
 
                     elif reads_type == "raw_pacbio":
                         print('Pacbio raw reads provided at this location:' + raw_reads_location)
-                        os.makedirs(output_path + "/raw_reads")
+                        if not os.path.exists(output_path + "/raw_reads"):
+                            os.makedirs(output_path + "/raw_reads")
                         suffixes = Path(raw_reads_location).suffixes
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
@@ -171,7 +177,8 @@ def main():
 
                     elif reads_type == "raw_nanopore":
                         print('Nanopore raw reads provided at this location:' + raw_reads_location)
-                        os.makedirs(output_path + "/raw_reads")
+                        if not os.path.exists(output_path + "/raw_reads"):
+                            os.makedirs(output_path + "/raw_reads")
                         suffixes = Path(raw_reads_location).suffixes
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)

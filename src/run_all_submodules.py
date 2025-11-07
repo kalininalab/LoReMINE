@@ -29,7 +29,7 @@ def run_all_submodules(args):
             print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
             convert_reads(args)
             print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-            final_assembly_path = perform_assembly_raw_reads(args)
+            final_assembly_path = perform_assembly_raw_reads_pacbio(args)
 
         elif args.pacbio_hifi != None: # If the input reads are in .bam file, then converting it to fastq
             print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
@@ -53,7 +53,9 @@ def run_all_submodules(args):
         elif args.reads != None and args.reads_type == "hifi_pacbio":
             print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
-            shutil.copyfile(args.reads, args.output + "/raw_reads/" + args.prefix + ".fastq")
+            suffixes = Path(args.reads).suffixes
+            raw_reads_filename = args.prefix + "".join(suffixes)
+            shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
             print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
             final_assembly_path = perform_assembly_hifi_reads(args)
 
@@ -105,7 +107,9 @@ def run_all_submodules(args):
                     print('Pacbio HiFi reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
-                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + prefix + ".fastq")
+                    suffixes = Path(raw_reads_location).suffixes
+                    raw_reads_filename = prefix + "".join(suffixes)
+                    shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
                     print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
                     final_assembly_path = perform_assembly_hifi_reads_batch_run(args, basepath + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, basepath)
 
@@ -152,10 +156,9 @@ def reheader_fasta(input_fasta, output_fasta, prefix):
 
     """Rename the contig headers of a best selected genome assembly file so that all contigs are numbered sequentially with "prefix" also added to each contig header"""
 
-    append_text = "_" + prefix
-
-    with open(output_fasta, "w") as out_handle:
-        for record in SeqIO.parse(input_fasta, "fasta"):
-            record.id = record.id + append_text
-            record.description = record.id
-            SeqIO.write(record, out_handle, "fasta")
+    with open(output_fasta, "w") as output_file:
+        for i, record in enumerate(SeqIO.parse(input_fasta, "fasta"), start=1):
+            new_id = f"contig_{i}_{prefix}"
+            record.id = new_id
+            record.description = ""
+            SeqIO.write(record, output_file, "fasta")

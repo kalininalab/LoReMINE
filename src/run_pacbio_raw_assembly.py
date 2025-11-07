@@ -1,6 +1,7 @@
 import argparse
 import os
 from pathlib import Path
+import shutil
 from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_pacbio(args):
@@ -14,6 +15,9 @@ def perform_assembly_raw_reads_pacbio(args):
     os.makedirs(assembly_basepath + "/flye")
     os.makedirs(assembly_basepath + "/quast_outputs")
 
+    if args.reads == None:
+        args.reads = basepath + "/raw_reads/" + args.prefix + ".fastq"
+
     suffixes = Path(args.reads).suffixes
     raw_reads_filename = args.prefix + "".join(suffixes)
 
@@ -25,7 +29,8 @@ def perform_assembly_raw_reads_pacbio(args):
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"  # Collect the assembly stats using quast
             os.system(quast_command)
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
-            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n\n")
+            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
+            print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
@@ -61,6 +66,28 @@ def perform_assembly_raw_reads_pacbio(args):
     else:
         final_assembly_path = assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta"
 
+    os.makedirs(assembly_basepath + "/checkm_output")
+    os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + args.prefix + ".fasta")
+    print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
+    checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
+    os.system(checkm_command)
+    os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
+    print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
+
+    if args.alt_param == True:
+        with open(assembly_basepath + "/checkm_output/checkm_summary.tsv") as checkm_file:
+            next(checkm_file)
+            for line in checkm_file:
+                split_array = line.split('\t')
+                completeness = str(split_array[-3].strip())
+                contamination = str(split_array[-2].strip())
+
+        with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
+            best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+            best_assembly_file.write("Completeness: " + completeness + '\n')
+            best_assembly_file.write("Contamination: " + contamination + '\n')
+
     return final_assembly_path
 
 
@@ -84,7 +111,8 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
             os.system(quast_command)
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
-            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n\n")
+            print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
+            print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
             print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
@@ -119,6 +147,28 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
         final_assembly_path = assembly_basepath + "/flye/assembly.fasta"
     else:
         final_assembly_path = assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta"
+
+    os.makedirs(assembly_basepath + "/checkm_output")
+    os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + prefix + ".fasta")
+    print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
+    checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
+    os.system(checkm_command)
+    os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
+    print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
+
+    if args.alt_param == True:
+        with open(assembly_basepath + "/checkm_output/checkm_summary.tsv") as checkm_file:
+            next(checkm_file)
+            for line in checkm_file:
+                split_array = line.split('\t')
+                completeness = str(split_array[-3].strip())
+                contamination = str(split_array[-2].strip())
+
+        with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
+            best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+            best_assembly_file.write("Completeness: " + completeness + '\n')
+            best_assembly_file.write("Contamination: " + contamination + '\n')
 
     return final_assembly_path
 
