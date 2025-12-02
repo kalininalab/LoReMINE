@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="LoReMiNE",
+    name="LoReMINE",
     version="1.0",
     description="Long Read-based Microbial genome mining pipeline",
     license='MIT',

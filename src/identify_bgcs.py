@@ -60,6 +60,8 @@ def identify_bgcs_multiple_genomes_all_submodules(args, input_dir, basepath):
     if not os.path.exists(basepath + "/identified_bgcs"):
         os.makedirs(basepath + "/identified_bgcs")
     for file in os.listdir(input_dir):
+        if os.path.isdir(input_dir + '/' + file):
+            continue
         filename = os.path.splitext(os.path.basename(file))[0]
         print("Identifying BGCs for " + file + ' with ' + args.threads + ' threads\n')
         if args.db_path == None:

@@ -54,6 +54,8 @@ def taxonomy_multiple_genomes_all_submodules(args, input_dir, basepath):
     if not os.path.exists(basepath + "/taxonomy"):
         os.makedirs(basepath + "/taxonomy")
     for file in os.listdir(input_dir):
+        if os.path.isdir(input_dir + '/' + file):
+            continue
         filename = os.path.splitext(os.path.basename(file))[0]
         print("Running taxonomy for " + file + '\n')
         command = "dfast_qc -i " + input_dir + '/' + file + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"

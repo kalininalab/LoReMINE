@@ -18,4 +18,4 @@ def convert_reads(args):
 
     os.system(raw_reads_command)
 
-    print("Raw reads can be found at:" + basepath + "/raw_reads")
+    print("Raw reads can be found at: " + basepath + "/raw_reads")

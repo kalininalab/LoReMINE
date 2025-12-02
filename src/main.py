@@ -25,11 +25,12 @@ def main():
     subparsers = parser.add_subparsers(dest='command', required=True)
     parser_assemble = subparsers.add_parser('assemble', help='run automated genome assembly pipeline')
     parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
-    parser_assemble.add_argument('--reads_type',  type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
+    parser_assemble.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
     parser_assemble.add_argument('--pacbio-raw',type=str, help='path to the input Pacbio raw reads (.bam file)')
     parser_assemble.add_argument('--pacbio-hifi',type=str, help='path to the input Pacbio HiFi reads (.bam file)')
     parser_assemble.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_assemble.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))',default="5000000")
+    parser_assemble.add_argument('--weights', type=str, help='weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)', default="10,2,2")
     parser_assemble.add_argument('-o', '--output',type=str, help='path to the save the output of the assembly', required=True)
     parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
@@ -73,6 +74,7 @@ def main():
     parser_all_submodules.add_argument('--pacbio-hifi', type=str, help='path to the input Pacbio HiFi reads (.bam file)')
     parser_all_submodules.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_all_submodules.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))', default="5000000")
+    parser_all_submodules.add_argument('--weights', type=str, help='weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)', default="10,2,2")
     parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the pipeline', required=True)
     parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
@@ -88,6 +90,9 @@ def main():
 
     if args.command == 'assemble':
 
+        final_assembly_path = ""
+        basepath = os.path.abspath(args.output)
+
         if args.batch_run == None:
 
             """Performing the assembly for single strain"""
@@ -96,13 +101,13 @@ def main():
                 print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                perform_assembly_raw_reads_pacbio(args)
+                final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
             elif args.pacbio_hifi != None:  # If the input reads are in .bam file, then converting it to fastq
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
                 convert_reads(args)
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
-                perform_assembly_hifi_reads(args)
+                final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
             elif args.pacbio_raw != None and args.pacbio_hifi != None:
                 print("Sorry, we need only single type of reads (Raw or HiFi)")
@@ -115,7 +120,7 @@ def main():
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                perform_assembly_raw_reads_pacbio(args)
+                final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
             elif args.reads != None and args.reads_type == "hifi_pacbio":
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.reads))
@@ -124,7 +129,7 @@ def main():
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
-                perform_assembly_hifi_reads(args)
+                final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
             elif args.reads != None and args.reads_type == "raw_nanopore":
                 print('Nanopore raw reads provided at this location:' + os.path.abspath(args.reads))
@@ -133,7 +138,12 @@ def main():
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
                 print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
-                perform_assembly_raw_reads_nanopore(args)
+                final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore(args)
+
+            if not os.path.exists(basepath + '/assembly/' + args.prefix + '/best_assembly'):
+                os.makedirs(basepath + '/assembly/' + args.prefix + '/best_assembly')
+            readjusted_assembly_header_path = basepath + '/assembly/' + args.prefix + '/best_assembly/' + args.prefix + '.fasta'
+            reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/' + args.prefix + '/best_assembly/', args.prefix)
 
         else:
 
@@ -163,7 +173,7 @@ def main():
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
-                        perform_assembly_hifi_reads_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
+                        final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
 
                     elif reads_type == "raw_pacbio":
                         print('Pacbio raw reads provided at this location:' + raw_reads_location)
@@ -173,7 +183,7 @@ def main():
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
-                        perform_assembly_raw_reads_pacbio_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
+                        final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
 
                     elif reads_type == "raw_nanopore":
                         print('Nanopore raw reads provided at this location:' + raw_reads_location)
@@ -183,7 +193,12 @@ def main():
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
                         print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
-                        perform_assembly_raw_reads_nanopore_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
+                        final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
+
+                    if not os.path.exists(basepath + '/assembly/best_assemblies'):
+                        os.makedirs(basepath + '/assembly/best_assemblies')
+                    readjusted_assembly_header_path = basepath + '/assembly/best_assemblies/' + prefix + '.fasta'
+                    reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/best_assemblies/', prefix)
 
 
     elif args.command == "taxonomy":
@@ -217,6 +232,37 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+
+def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_assemblies_path, prefix):
+
+    """Rename the contig headers of a best selected genome assembly file so that all contigs are numbered sequentially with "prefix" also added to each contig header"""
+
+    mapping = {}
+    with open(output_fasta, "w") as output_file:
+        for i, record in enumerate(SeqIO.parse(input_fasta, "fasta"), start=1):
+            new_id = f"contig_{i}_{prefix}"
+            mapping[record.id] = new_id
+            record.id = new_id
+            record.description = ""
+            SeqIO.write(record, output_file, "fasta")
+
+    if not os.path.exists(best_assemblies_path + "/quast_output"):
+        os.makedirs(best_assemblies_path + "/quast_output")
+
+    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta)
+
+    updated_circularity_file = open(best_assemblies_path + "/quast_output/" + prefix + "/circularity.tsv", 'x')
+
+    counter = 0
+    with open(final_circularity_file_path) as circularity_file:
+        for line in circularity_file.readlines():
+            counter += 1
+            if counter == 1:
+                updated_circularity_file.write(line.strip() + '\n')
+                continue
+            else:
+                split_array = line.split('\t')
+                updated_circularity_file.write(mapping[split_array[0].strip()] + '\t' + split_array[1].strip() + '\t' + split_array[2].strip() + '\n')
 
 if __name__ == "__main__":
     main()

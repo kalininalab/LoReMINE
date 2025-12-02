@@ -39,4 +39,4 @@ test:
 about:
   home: "https://github.com/kalininalab/LoReMINE"
   license: MIT
-  summary: "LoreMiNE: Long Read-based Microbial genome mining pipeline"
+  summary: "LoReMINE: Long Read-based Microbial genome mining pipeline"

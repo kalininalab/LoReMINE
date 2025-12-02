@@ -2,6 +2,7 @@ import argparse
 import os
 from pathlib import Path
 import shutil
+from Bio import SeqIO
 from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_nanopore(args):
@@ -22,8 +23,11 @@ def perform_assembly_raw_reads_nanopore(args):
     raw_reads_filename = args.prefix + "".join(suffixes)
 
     if args.alt_param == False:   # Performing the assembly using default parameters
-        flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
+        flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size
         os.system(flye_command)
+        os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
+        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+        os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
@@ -40,8 +44,11 @@ def perform_assembly_raw_reads_nanopore(args):
         files_present = {}
         for ele in min_overlap:
             os.makedirs(assembly_basepath + "/flye/" + str(ele))
-            flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele)
+            flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size
             os.system(flye_command)
+            os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
+            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
+            os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
@@ -57,14 +64,18 @@ def perform_assembly_raw_reads_nanopore(args):
                 print(os.path.abspath(assembly_basepath + "/quast_outputs/" + str(key) + "/report.pdf"))
 
         print("Selecting the best assembly out of all the assemblies....")
-        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")   # Choosing the best assembly out of all the assemblies created using alternate parameters
+        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, args.weights, assembly_basepath + "/")   # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
     if args.alt_param == False:
         final_assembly_path = assembly_basepath + "/flye/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/circularity.tsv"
     else:
         final_assembly_path = assembly_basepath+ "/flye/" + str(best_assembly) + "/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
 
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/" + args.prefix + ".fasta")
+    print("Final assembly can be found here: " + assembly_basepath + "/" + args.prefix + ".fasta" + "\n\n")
     os.makedirs(assembly_basepath + "/checkm_output")
     os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + args.prefix + ".fasta")
@@ -87,7 +98,7 @@ def perform_assembly_raw_reads_nanopore(args):
             best_assembly_file.write("Completeness: " + completeness + '\n')
             best_assembly_file.write("Contamination: " + contamination + '\n')
 
-    return final_assembly_path
+    return final_assembly_path, final_circularity_file_path
 
 
 def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_size, prefix, output_path):
@@ -103,8 +114,10 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
     os.makedirs(assembly_basepath + "/quast_outputs")
 
     if args.alt_param == False:  # Performing the assembly using default parameters
-        flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold"
-        os.system(flye_command)
+        flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size
+        os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
+        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+        os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
@@ -114,15 +127,18 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
             print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
             print("If you are not satisfied with the default assembly, please re-run the assembly with \"alt_param\" flag as \"True\"")
         else:
-            print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
+            print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
 
     else:  # Performing the assembly using alternate parameters as the assembly using default parameters was not satisfactory
         min_overlap = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
         files_present = {}
         for ele in min_overlap:
             os.makedirs(assembly_basepath + "/flye/" + str(ele))
-            flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele)
+            flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size
             os.system(flye_command)
+            os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
+            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
+            os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
@@ -138,14 +154,18 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
                 print(os.path.abspath(assembly_basepath + "/quast_outputs/" + str(key) + "/report.pdf"))
 
         print("Selecting the best assembly out of all the assemblies....")
-        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + "/")  # Choosing the best assembly out of all the assemblies created using alternate parameters
+        best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), genome_size, args.weights, assembly_basepath + "/")  # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
     if args.alt_param == False:
         final_assembly_path = assembly_basepath + "/flye/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/circularity.tsv"
     else:
         final_assembly_path = assembly_basepath+ "/flye/" + str(best_assembly) + "/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
 
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/" + prefix + ".fasta")
+    print("Final assembly can be found here: " + assembly_basepath + "/" + prefix + ".fasta" + "\n\n")
     os.makedirs(assembly_basepath + "/checkm_output")
     os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + prefix + ".fasta")
@@ -168,8 +188,7 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
             best_assembly_file.write("Completeness: " + completeness + '\n')
             best_assembly_file.write("Contamination: " + contamination + '\n')
 
-    return final_assembly_path
-
+    return final_assembly_path, final_circularity_file_path
 
 
 def generate_contig_circularity_info(quast_path, output_path):
@@ -179,6 +198,7 @@ def generate_contig_circularity_info(quast_path, output_path):
     write_file = open(quast_path + '/circularity.tsv', 'x')
     write_file.write("contig_name\tcircular\tLength\n")
 
+    headers = [record.id for record in SeqIO.parse(output_path + "/assembly.fasta", "fasta")]
 
     with open(output_path + "/assembly_info.txt") as assembly_info_file:
         counter = 0
@@ -187,7 +207,48 @@ def generate_contig_circularity_info(quast_path, output_path):
             if counter == 1:
                 continue
             split_array = line.split()
+
+            if split_array[0].strip() not in headers:
+                continue
+
             if split_array[3].strip() == "Y":
                 write_file.write(split_array[0].strip() + '\tyes' + '\t' + str(split_array[1].strip()) + '\n')
             elif split_array[3].strip() == "N":
                 write_file.write(split_array[0].strip() + '\tno' + '\t' + str(split_array[1].strip()) + '\n')
+
+def filter_low_quality_contigs(input_fasta, output_fasta):
+
+    """Checking the assemblies to filter out low quality contigs like homopolymer runs and SSRs"""
+
+    masked_path = str(Path(input_fasta).resolve().parent)
+    masked_file = masked_path + '/' + str(Path(input_fasta).resolve().stem) + "_masked.fasta"
+    os.system("dustmasker -in " + str(input_fasta) + " -outfmt fasta -out " + str(masked_file))
+    with open(output_fasta, "w") as out:
+        for record in SeqIO.parse(masked_file, "fasta"):
+            low_record_quality = is_low_quality(record)
+            if low_record_quality == "No":
+                for input_fasta_record in SeqIO.parse(input_fasta, "fasta"):
+                    if input_fasta_record.id == record.id:
+                        SeqIO.write(input_fasta_record, out, "fasta")
+                    else:
+                        continue
+            else:
+                continue
+    os.remove(masked_file)
+
+def is_low_quality(record):
+
+    """Checking if >=80% of the contig is marked as low quality by dustmasker. If yes, then we will discard it"""
+
+    low_quality = ""
+    seq = str(record.seq)
+    total = len(seq)
+    lowercase = sum(1 for b in seq if b.islower())
+    lower_fraction = lowercase / total
+
+    if lower_fraction >= 0.8:
+        low_quality = "Yes"
+    else:
+        low_quality = "No"
+
+    return low_quality

@@ -3,6 +3,7 @@ import os
 from Bio import SeqIO
 import shutil
 import glob
+from pathlib import Path
 from src.evaluate_best_assembly import *
 
 def perform_assembly_hifi_reads(args):
@@ -19,7 +20,9 @@ def perform_assembly_hifi_reads(args):
 
     flye_command = "flye --pacbio-hifi " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold --asm-coverage 50 -g " + args.genome_size  # Performing the assembly using flye
     os.system(flye_command)
-
+    os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+    os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/flye " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
         os.system(quast_command)
@@ -34,7 +37,9 @@ def perform_assembly_hifi_reads(args):
     updated_genome_size = str(genome_size_intermediate) + 'm'
     hifiasm_command = "hifiasm -o " + args.prefix + " -t " + args.threads + " -a 8 -f 0 --hg-size " + str(updated_genome_size) + " " + basepath + "/raw_reads/" + args.prefix + ".fastq"  # Performing the assembly using Hifiasm
     os.system(hifiasm_command)
-    os.system('''awk '/^S/{print \">\"$2;print $3}\' ''' + args.prefix + ".bp.p_ctg.gfa" + " > final_assembly.fasta")
+    os.system('''awk '/^S/{print \">\"$2;print $3}\' ''' + args.prefix + ".bp.p_ctg.gfa" + " > final_assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/Hifiasm/final_assembly_temp.fasta", assembly_basepath + "/Hifiasm/final_assembly.fasta")
+    os.remove(assembly_basepath + "/Hifiasm/final_assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/Hifiasm/final_assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/Hifiasm " + assembly_basepath + "/Hifiasm/final_assembly.fasta"  # Collect the assembly stats using quast
         os.system(quast_command)
@@ -46,7 +51,9 @@ def perform_assembly_hifi_reads(args):
     os.makedirs(assembly_basepath + "/IPA")
     ipa_command = "ipa local -i " + basepath + "/raw_reads/" + args.prefix + ".fastq" + " --run-dir " + assembly_basepath + "/IPA/" + " --tmp-dir "  + assembly_basepath + "/IPA/" + " --njobs 1 --nthreads " + args.threads  # Performing the assembly using IPA
     os.system(ipa_command)
-    shutil.copyfile(assembly_basepath + "/IPA/19-final/final.p_ctg.fasta", assembly_basepath + "/IPA/final_assembly.fasta")
+    shutil.copyfile(assembly_basepath + "/IPA/19-final/final.p_ctg.fasta", assembly_basepath + "/IPA/final_assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/IPA/final_assembly_temp.fasta", assembly_basepath + "/IPA/final_assembly.fasta")
+    os.remove(assembly_basepath + "/IPA/final_assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/IPA/final_assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/IPA " + assembly_basepath + "/IPA/final_assembly.fasta"   # Collect the assembly stats using quast
         os.system(quast_command)
@@ -60,16 +67,21 @@ def perform_assembly_hifi_reads(args):
     print("Assembly stats for the IPA assembly can be found here: " + assembly_basepath + "/quast_outputs/IPA/report.pdf")
     print("\n\n")
     print("Selecting the best assembly out of all the assemblies....")
-    best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + '/')   # Choosing the best assembly out of all the 3 assemblies created using flye, Hifiasm and IPA
+    best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, args.weights, assembly_basepath + '/')   # Choosing the best assembly out of all the 3 assemblies created using flye, Hifiasm and IPA
 
     final_assembly_path = ""
+    final_circularity_file_path = ""
     if best_assembly == "flye":
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + '/' + str(best_assembly) + "/assembly.fasta")
         final_assembly_path = assembly_basepath + '/' + str(best_assembly) + "/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
     else:
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + '/' + str(best_assembly) + "/final_assembly.fasta")
         final_assembly_path = assembly_basepath + '/' + str(best_assembly) + "/final_assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
 
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/" + args.prefix + ".fasta")
+    print("Final assembly can be found here: " + assembly_basepath + "/" + args.prefix + ".fasta" + "\n\n")
     os.makedirs(assembly_basepath + "/checkm_output")
     os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + args.prefix + ".fasta")
@@ -91,7 +103,7 @@ def perform_assembly_hifi_reads(args):
         best_assembly_file.write("Completeness: " + completeness + '\n')
         best_assembly_file.write("Contamination: " + contamination + '\n')
 
-    return final_assembly_path
+    return final_assembly_path, final_circularity_file_path
 
 
 def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, prefix, output_path):
@@ -109,7 +121,9 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
 
     flye_command = "flye --pacbio-hifi " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold --asm-coverage 50 -g " + genome_size  # Performing the assembly using flye
     os.system(flye_command)
-
+    os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+    os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/flye " + assembly_basepath + "/flye/assembly.fasta"  # Collect the assembly stats using quast
         os.system(quast_command)
@@ -124,19 +138,23 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
     updated_genome_size = str(genome_size_intermediate) + 'm'
     hifiasm_command = "hifiasm -o " + prefix + " -t " + args.threads + " -a 8 -f 0 --hg-size " + str(updated_genome_size) + " " + raw_reads_path  # Performing the assembly using Hifiasm
     os.system(hifiasm_command)
-    os.system('''awk '/^S/{print \">\"$2;print $3}\' ''' + prefix + ".bp.p_ctg.gfa" + " > final_assembly.fasta")
+    os.system('''awk '/^S/{print \">\"$2;print $3}\' ''' + prefix + ".bp.p_ctg.gfa" + " > final_assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/Hifiasm/final_assembly_temp.fasta", assembly_basepath + "/Hifiasm/final_assembly.fasta")
+    os.remove(assembly_basepath + "/Hifiasm/final_assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/Hifiasm/final_assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/Hifiasm " + assembly_basepath + "/Hifiasm/final_assembly.fasta"  # Collect the assembly stats using quast
         os.system(quast_command)
         generate_contig_circularity_info("Hifiasm", assembly_basepath + "/quast_outputs/Hifiasm/", assembly_basepath + "/Hifiasm/")
         print("\n\nAssembly using HiFiasm completed. Next, we will perform assembly using IPA...")
     else:
-        print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to xxxx@gmail.com")
+        print("There was an error while performing the assembly. Please look if you can solve it by yourself or send a log file to amayajaykumar.agrawal@helmholtz-hips.de")
 
     os.makedirs(assembly_basepath + "/IPA")
     ipa_command = "ipa local -i " + raw_reads_path + " --run-dir " + assembly_basepath + "/IPA/" + " --tmp-dir "  + assembly_basepath + "/IPA/" + " --njobs 1 --nthreads " + args.threads  # Performing the assembly using IPA
     os.system(ipa_command)
-    shutil.copyfile(assembly_basepath + "/IPA/19-final/final.p_ctg.fasta", assembly_basepath + "/IPA/final_assembly.fasta")
+    shutil.copyfile(assembly_basepath + "/IPA/19-final/final.p_ctg.fasta", assembly_basepath + "/IPA/final_assembly_temp.fasta")
+    filter_low_quality_contigs(assembly_basepath + "/IPA/final_assembly_temp.fasta", assembly_basepath + "/IPA/final_assembly.fasta")
+    os.remove(assembly_basepath + "/IPA/final_assembly_temp.fasta")
     if os.path.isfile(assembly_basepath + "/IPA/final_assembly.fasta"):
         quast_command = "quast -o " + assembly_basepath + "/quast_outputs/IPA " + assembly_basepath + "/IPA/final_assembly.fasta"  # Collect the assembly stats using quast
         os.system(quast_command)
@@ -150,16 +168,21 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
     print("Assembly stats for the IPA assembly can be found here: " + assembly_basepath + "/quast_outputs/IPA/report.pdf")
     print("\n\n")
     print("Selecting the best assembly out of all the assemblies....")
-    best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, assembly_basepath + '/')   # Choosing the best assembly out of all the 3 assemblies created using flye, Hifiasm and IPA
+    best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), genome_size, args.weights, assembly_basepath + '/')   # Choosing the best assembly out of all the 3 assemblies created using flye, Hifiasm and IPA
 
     final_assembly_path = ""
+    final_circularity_file_path = ""
     if best_assembly == "flye":
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + '/' + str(best_assembly) + "/assembly.fasta")
         final_assembly_path = assembly_basepath + '/' + str(best_assembly) + "/assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
     else:
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + '/' + str(best_assembly) + "/final_assembly.fasta")
         final_assembly_path = assembly_basepath + '/' + str(best_assembly) + "/final_assembly.fasta"
+        final_circularity_file_path = assembly_basepath + "/quast_outputs/" + str(best_assembly) + "/circularity.tsv"
 
+    shutil.copyfile(final_assembly_path, assembly_basepath + "/" + prefix + ".fasta")
+    print("Final assembly can be found here: " + assembly_basepath + "/" + prefix + ".fasta" + "\n\n")
     os.makedirs(assembly_basepath + "/checkm_output")
     os.makedirs(assembly_basepath + "/checkm_output/best_selected_assembly")
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + prefix + ".fasta")
@@ -181,8 +204,7 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
         best_assembly_file.write("Completeness: " + completeness + '\n')
         best_assembly_file.write("Contamination: " + contamination + '\n')
 
-    return final_assembly_path
-
+    return final_assembly_path, final_circularity_file_path
 
 def generate_contig_circularity_info(assembler, quast_path, output_path):
 
@@ -192,6 +214,8 @@ def generate_contig_circularity_info(assembler, quast_path, output_path):
     write_file.write("contig_name\tcircular\tLength\n")
 
     if assembler == "flye":
+        headers = [record.id for record in SeqIO.parse(output_path + "/assembly.fasta", "fasta")]
+
         with open(output_path + "assembly_info.txt") as assembly_info_file:
             counter = 0
             for line in assembly_info_file.readlines():
@@ -199,6 +223,10 @@ def generate_contig_circularity_info(assembler, quast_path, output_path):
                 if counter == 1:
                     continue
                 split_array = line.split()
+
+                if split_array[0].strip() not in headers:
+                    continue
+
                 if split_array[3].strip() == "Y":
                     write_file.write(split_array[0].strip() + '\tyes' + '\t' + str(split_array[1].strip()) + '\n')
                 elif split_array[3].strip() == "N":
@@ -220,3 +248,41 @@ def generate_contig_circularity_info(assembler, quast_path, output_path):
                 write_file.write(record.id + '\tyes' + '\t' + str(len(record.seq)) + '\n')
             elif split_array[2].strip() == 'l':
                 write_file.write(record.id + '\tno' + '\t' + str(len(record.seq)) + '\n')
+
+
+def filter_low_quality_contigs(input_fasta, output_fasta):
+
+    """Checking the assemblies to filter out low quality contigs like homopolymer runs and SSRs"""
+
+    masked_path = str(Path(input_fasta).resolve().parent)
+    masked_file = masked_path + '/' + str(Path(input_fasta).resolve().stem) + "_masked.fasta"
+    os.system("dustmasker -in " + str(input_fasta) + " -outfmt fasta -out " + str(masked_file))
+    with open(output_fasta, "w") as out:
+        for record in SeqIO.parse(masked_file, "fasta"):
+            low_record_quality = is_low_quality(record)
+            if low_record_quality == "No":
+                for input_fasta_record in SeqIO.parse(input_fasta, "fasta"):
+                    if input_fasta_record.id == record.id:
+                        SeqIO.write(input_fasta_record, out, "fasta")
+                    else:
+                        continue
+            else:
+                continue
+    os.remove(masked_file)
+
+def is_low_quality(record):
+
+    """Checking if >=80% of the contig is marked as low quality by dustmasker. If yes, then we will discard it"""
+
+    low_quality = ""
+    seq = str(record.seq)
+    total = len(seq)
+    lowercase = sum(1 for b in seq if b.islower())
+    lower_fraction = lowercase / total
+
+    if lower_fraction >= 0.8:
+        low_quality = "Yes"
+    else:
+        low_quality = "No"
+
+    return low_quality

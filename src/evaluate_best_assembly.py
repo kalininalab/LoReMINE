@@ -39,11 +39,16 @@ def parse_circular_contigs(circularity_report_path, genome_size):
 
     return num_circular, has_circular_chromosome
 
-def evaluate_assemblies(quast_dirs, genome_size, best_assembly_store_path):
+def evaluate_assemblies(quast_dirs, genome_size, weights, best_assembly_store_path):
 
     """Evaluate multiple assemblies and pick the best assembly"""
 
     rankings = []
+
+    weights_split_array = weights.split(",")
+    has_circular_chromosome = int(weights_split_array[0].strip())
+    num_circular = int(weights_split_array[1].strip())
+    num_contigs = int(weights_split_array[2].strip())
 
     for quast_dir in quast_dirs:
         report_path = os.path.join(quast_dir, "report.tsv")
@@ -65,9 +70,9 @@ def evaluate_assemblies(quast_dirs, genome_size, best_assembly_store_path):
     # The scoring function deciding the score for each assembly based on circularity of chromosome, no. of circular contigs, total no. of contigs and size of chromosome (bigger the better)
 
     df["score"] = (
-        df["has_circular_chromosome"].astype(int) * 10 +  # very high priority
-        df["num_circular"] * 2 -                          # minor bonus for other circular contigs
-        df["num_contigs"] * 2 +                           # strong penalty for fragmented assemblies
+        df["has_circular_chromosome"].astype(int) * has_circular_chromosome +  # very high priority
+        df["num_circular"] * num_circular -                          # minor bonus for other circular contigs
+        df["num_contigs"] * num_contigs +                           # strong penalty for fragmented assemblies
         df["N50"] / 1e6                                   # small bonus for continuity
     )
 
