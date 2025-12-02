@@ -102,9 +102,9 @@ usage: loremine assemble [-h] [--reads READS] [--reads_type READS_TYPE] [--pacbi
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
+                        type of reads in the ".fastq" file. Possible inputs are "raw_pacbio", "raw_nanopore" and "hifi_pacbio"
   --pacbio-raw PACBIO_RAW
                         path to the input Pacbio raw reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
@@ -114,13 +114,15 @@ options:
                         start from first line itself
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
+  --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome,
+                        b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)
   -o OUTPUT, --output OUTPUT
                         path to the save the output of the assembly
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
-  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
+  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
                         reads
 `````
 
@@ -140,7 +142,9 @@ options:
     
 - ````` -g `````: Use this option to input the estimated genome size of the strain whose assembly you are performing. It is used to estimate coverage and guide assembly algorithms while performing the assembly. For e.g: if your organism's genome size is `````10 Mbp (10 mega base pairs)`````, it should be given as `````10000000`````. Default value is `````5 Mbp (5000000 bp)`````
 
-- ````` -o `````: Path to the output directory where you want to save the assembly output. After assembly completion, the assembly statistics and contig circularity information (whether a contig is circular or linear) are provided in the `````report.tsv````` and `````circularity.tsv````` files within the `````given_output_folder_path/assembly/given_prefix/quast_outputs/````` folder, while assembly completeness and contamination are reported in `````checkm_summary.tsv````` file inside the `````given_output_folder_path/assembly/given_prefix/checkm_output/````` folder. If you have Pacbio HiFi reads or you used alternate parameters (`````--alt_param`````) for performing the assembly using Pacbio & Nanopore raw reads, the pipeline generates multiple assemblies using different assemblers or parameter settings and automatically selects the best assembly. The best selected assembly, along with its completeness, contamination, and summary statistics, is detailed in `````chosen_best_assembly.txt````` file which can be found inside the `````given_output_folder_path/assembly/given_prefix/````` folder
+- ````` weights `````: Use this option to input the weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. To calculate the assembly score, we use multiple parameters like whether the assembly has a circular chromosome **(highest priority)**, number of circular contigs **(bonus for other circular contigs)**, number of contigs **(strong penalty for fragmented assemblies)** & N50 **(small bonus for continuity)**. The formula to calculate assembly score is `````Assembly score = 10*a + 2*b - 2*c + d/1e-6`````, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50. Default value is `````10,2,2````` as we can observe in the formula that these are the weights of a, b & c
+  
+- ````` -o `````: Path to the output directory where you want to save the assembly output. After assembly completion, the assembly statistics and contig circularity information (whether a contig is circular or linear) are provided in the `````report.tsv````` and `````circularity.tsv````` files within the `````given_output_folder_path/assembly/given_prefix/quast_outputs/````` folder, while assembly completeness and contamination are reported in `````checkm_summary.tsv````` file inside the `````given_output_folder_path/assembly/given_prefix/checkm_output/````` folder. If you have Pacbio HiFi reads or you used alternate parameters (`````--alt_param`````) for performing the assembly using Pacbio & Nanopore raw reads, the pipeline generates multiple assemblies using different assemblers or parameter settings and automatically selects the best assembly. The best selected assembly, along with its completeness, contamination, and summary statistics, is provided in the `````chosen_best_assembly.txt````` file, while the best selected assembly is saved as `````given_prefix.fasta`````. Both files are located inside the `````given_output_folder_path/assembly/given_prefix/````` folder 
 
 - ````` -t `````: Number of threads to use while running the assembly. Default value is `````1`````
 
