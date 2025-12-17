@@ -23,15 +23,18 @@ def perform_assembly_raw_reads_nanopore(args):
     raw_reads_filename = args.prefix + "".join(suffixes)
 
     if args.alt_param == False:   # Performing the assembly using default parameters
-        flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size
-        os.system(flye_command)
+        if args.asm_coverage == None:
+            flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size
+        else:
+            flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)
+        os.system(flye_command + " > /dev/null 2>&1")
         os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
         filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
         os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
-            os.system(quast_command)
+            os.system(quast_command + " > /dev/null 2>&1")
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
             print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
             print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
@@ -44,15 +47,18 @@ def perform_assembly_raw_reads_nanopore(args):
         files_present = {}
         for ele in min_overlap:
             os.makedirs(assembly_basepath + "/flye/" + str(ele))
-            flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size
-            os.system(flye_command)
+            if args.asm_coverage == None:
+                flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size
+            else:
+                flye_command = "flye --nano-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)
+            os.system(flye_command + " > /dev/null 2>&1")
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
             os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
-                os.system(quast_command)
+                os.system(quast_command + " > /dev/null 2>&1")
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
                 continue
@@ -81,7 +87,7 @@ def perform_assembly_raw_reads_nanopore(args):
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + args.prefix + ".fasta")
     print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
     checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
-    os.system(checkm_command)
+    os.system(checkm_command + " > /dev/null 2>&1")
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 
@@ -114,14 +120,18 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
     os.makedirs(assembly_basepath + "/quast_outputs")
 
     if args.alt_param == False:  # Performing the assembly using default parameters
-        flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size
+        if args.asm_coverage == None:
+            flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size
+        else:
+            flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)
+        os.system(flye_command + " > /dev/null 2>&1")
         os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
         filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
         os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
-            os.system(quast_command)
+            os.system(quast_command + " > /dev/null 2>&1")
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
             print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
             print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
@@ -134,15 +144,18 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
         files_present = {}
         for ele in min_overlap:
             os.makedirs(assembly_basepath + "/flye/" + str(ele))
-            flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size
-            os.system(flye_command)
+            if args.asm_coverage == None:
+                flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size
+            else:
+                flye_command = "flye --nano-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)
+            os.system(flye_command + " > /dev/null 2>&1")
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
             os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
-                os.system(quast_command)
+                os.system(quast_command + " > /dev/null 2>&1")
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
                 continue
@@ -171,7 +184,7 @@ def perform_assembly_raw_reads_nanopore_batch_run(args, raw_reads_path, genome_s
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + prefix + ".fasta")
     print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
     checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
-    os.system(checkm_command)
+    os.system(checkm_command + " > /dev/null 2>&1")
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 

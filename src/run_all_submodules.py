@@ -169,7 +169,7 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
     if not os.path.exists(best_assemblies_path + "/quast_output"):
         os.makedirs(best_assemblies_path + "/quast_output")
 
-    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta)
+    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta + " > /dev/null 2>&1")
 
     updated_circularity_file = open(best_assemblies_path + "/quast_output/" + prefix + "/circularity.tsv", 'x')
 

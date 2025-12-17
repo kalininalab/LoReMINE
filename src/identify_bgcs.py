@@ -13,7 +13,7 @@ def identify_bgcs_single_genome(args):
     else:
         command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + args.input_fasta
     print("Identifying BGCs for " + args.input_fasta + ' with ' + args.threads + ' threads\n')
-    os.system(command)
+    os.system(command + " > /dev/null 2>&1")
     print("BGC identification completed for " + args.input_fasta + '\n')
     print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 
@@ -28,7 +28,7 @@ def identify_bgcs_single_genome_all_submodules(args, input_fasta, basepath):
     else:
         command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + input_fasta
     print("Identifying BGCs for " + input_fasta + ' with ' + args.threads + ' threads\n')
-    os.system(command)
+    os.system(command + " > /dev/null 2>&1")
     print("BGC identification completed for " + input_fasta + '\n')
     print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
     bgc_output_path = basepath + "/identified_bgcs/" + filename
@@ -49,7 +49,7 @@ def identify_bgcs_multiple_genomes(args):
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " " + args.input_dir + '/' + file
         else:
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + args.input_dir + '/' + file
-        os.system(command)
+        os.system(command + " > /dev/null 2>&1")
         print("BGC identification completed for " + file  + '\n')
         print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 
@@ -68,7 +68,7 @@ def identify_bgcs_multiple_genomes_all_submodules(args, input_dir, basepath):
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " " + input_dir + '/' + file
         else:
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + input_dir + '/' + file
-        os.system(command)
+        os.system(command + " > /dev/null 2>&1")
         print("BGC identification completed for " + file  + '\n')
         print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 

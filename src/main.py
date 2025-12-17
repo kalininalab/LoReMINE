@@ -34,7 +34,9 @@ def main():
     parser_assemble.add_argument('-o', '--output',type=str, help='path to the save the output of the assembly', required=True)
     parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
+    parser_assemble.add_argument('--asm-coverage', type=str, help="reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then suggested value is \"50\", so that it uses longest 50x reads for contig assembly")
     parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
+    parser_assemble.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
 
     #################################################  Parser for identifying the taxonomy of the genome ############################################
 
@@ -43,6 +45,7 @@ def main():
     parser_taxonomy.add_argument('--input_dir', type=str, help='path to the input directory containing multiple fasta files (Use this option to identify the taxonomy for multiple genomes)')
     parser_taxonomy.add_argument('-o', '--output', type=str, help='path to the save the output of the taxonomy', required=True)
     parser_taxonomy.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
+    parser_taxonomy.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
 
     #################################################  Parser for identifying the BGCs in the genome ############################################
 
@@ -52,6 +55,7 @@ def main():
     parser_bgc_identification.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the output directory where you want to save the identified BGCs', required=True)
     parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
+    parser_bgc_identification.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
 
     #################################################  Parser for running the BGC clustering ############################################
 
@@ -64,6 +68,7 @@ def main():
     parser_bgc_clustering.add_argument('--pfam_dir', type=str, help='path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file', required=True)
     parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
+    parser_bgc_clustering.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
 
     #################################################  Parser for running the whole pipeline together ############################################
 
@@ -78,6 +83,7 @@ def main():
     parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the pipeline', required=True)
     parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
+    parser_all_submodules.add_argument('--asm-coverage', type=str, help="reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then suggested value is \"50\", so that it uses longest 50x reads for contig assembly")
     parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
     parser_all_submodules.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_all_submodules.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
@@ -85,8 +91,19 @@ def main():
     parser_all_submodules.add_argument('--pfam_dir', type=str, help='Path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file', required=True)
     parser_all_submodules.add_argument('--bigslice_cutoff', type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_all_submodules.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
+    parser_all_submodules.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
 
     args = parser.parse_args()
+
+    outdir = os.path.abspath(args.output)
+
+    if os.path.exists(outdir):
+        if not args.force:
+            print(f"[ERROR] Output directory '{outdir}' already exists. "
+                  f"Use --force to overwrite the output")
+            sys.exit(1)
+        else:
+            shutil.rmtree(outdir)
 
     if args.command == 'assemble':
 
@@ -249,7 +266,7 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
     if not os.path.exists(best_assemblies_path + "/quast_output"):
         os.makedirs(best_assemblies_path + "/quast_output")
 
-    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta)
+    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta + " > /dev/null 2>&1")
 
     updated_circularity_file = open(best_assemblies_path + "/quast_output/" + prefix + "/circularity.tsv", 'x')
 

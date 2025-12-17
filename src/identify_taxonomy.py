@@ -10,7 +10,7 @@ def taxonomy_single_genome(args):
     filename = os.path.splitext(os.path.basename(args.input_fasta))[0]
     command = "dfast_qc -i " + args.input_fasta + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
     print("Running taxonomy for " + args.input_fasta + '\n')
-    os.system(command)
+    os.system(command + " > /dev/null 2>&1")
     print("Taxonomy identification completed for " + args.input_fasta + '\n')
     extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
     print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
@@ -24,7 +24,7 @@ def taxonomy_single_genome_all_submodules(args, input_fasta, basepath):
     filename = args.prefix
     command = "dfast_qc -i " + input_fasta + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
     print("Running taxonomy for " + input_fasta + '\n')
-    os.system(command)
+    os.system(command + " > /dev/null 2>&1")
     print("Taxonomy identification completed for " + input_fasta + '\n')
     extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
     print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
@@ -41,7 +41,7 @@ def taxonomy_multiple_genomes(args):
         filename = os.path.splitext(os.path.basename(file))[0]
         print("Running taxonomy for " + file + '\n')
         command = "dfast_qc -i " + args.input_dir + '/' + file + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
-        os.system(command)
+        os.system(command + " > /dev/null 2>&1")
         print("Taxonomy identification completed for " + file  + '\n')
         extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
         print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")
@@ -59,7 +59,7 @@ def taxonomy_multiple_genomes_all_submodules(args, input_dir, basepath):
         filename = os.path.splitext(os.path.basename(file))[0]
         print("Running taxonomy for " + file + '\n')
         command = "dfast_qc -i " + input_dir + '/' + file + " -o " + basepath + "/taxonomy/" + filename + "/ -n " + args.threads + " --enable_gtdb --disable_cc --force > /dev/null 2>&1"
-        os.system(command)
+        os.system(command + " > /dev/null 2>&1")
         print("Taxonomy identification completed for " + file  + '\n')
         extract_taxonomy_info(basepath + "/taxonomy/" + filename + '/')   # Collect the taxonomy outputs
         print("For the final identified taxonomy output, refer to this file:" + basepath + "/taxonomy/" + filename + "/identified_taxonomy.txt\n\n")

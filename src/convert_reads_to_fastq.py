@@ -16,6 +16,6 @@ def convert_reads(args):
     elif args.pacbio_hifi != None:
         raw_reads_command += args.pacbio_hifi + " > " + basepath + "/raw_reads/" + args.prefix + '.fastq'
 
-    os.system(raw_reads_command)
+    os.system(raw_reads_command + " > /dev/null 2>&1")
 
     print("Raw reads can be found at: " + basepath + "/raw_reads")
