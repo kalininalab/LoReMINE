@@ -102,39 +102,43 @@ usage: loremine assemble [-h] [--reads READS] [--reads_type READS_TYPE] [--pacbi
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" file. Possible inputs are "raw_pacbio", "raw_nanopore" and "hifi_pacbio"
+                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
   --pacbio-raw PACBIO_RAW
                         path to the input Pacbio raw reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
                         path to the input Pacbio HiFi reads (.bam file)
   --batch_run BATCH_RUN
-                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (deafult = 5000000 bp), prefix). No header is assumed, so
+                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so
                         start from first line itself
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
-  --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome,
-                        b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)
+  --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b =
+                        no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)
   -o OUTPUT, --output OUTPUT
                         path to the save the output of the assembly
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
-  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then write "NA" in this field
+  --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
+  --asm-coverage ASM_COVERAGE
+                        reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
-                        reads
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
+                        Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
+  --force               Override the output in the existing output directory
 `````
 
 - ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-raw````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
   
 - ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly
 
-- ````` pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio raw reads
+- ````` --pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio raw reads
 
-- ````` pacbio-hifi `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio HiFi reads
+- ````` --pacbio-hifi `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio HiFi reads
 
--  ````` batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. An example file named `````input_batch_run.tsv````` is provided in the repository and can be used as a template for this parameter. As an input, it requires a **".tsv"** file which should contain 4 columns
+-  ````` --batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. An example file named `````input_batch_run.tsv````` is provided in the repository and can be used as a template for this parameter. As an input, it requires a **".tsv"** file which should contain 4 columns
     - 1st column is the path to raw reads (`````.fastq````` or `````.fastq.gz`````) file. It does not accept reads in `````.bam````` format. To convert the reads from `````.bam````` to `````.fastq````` format, you can use the following command `````samtools fastq input_filename.bam > output_filename.fastq`````
     - 2nd column should contain the type of reads (`````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````)
     - 3rd column should contain the genome size (if you already know, else the default is 5000000 bp)
@@ -142,7 +146,7 @@ options:
     
 - ````` -g `````: Use this option to input the estimated genome size of the strain whose assembly you are performing. It is used to estimate coverage and guide assembly algorithms while performing the assembly. For e.g: if your organism's genome size is `````10 Mbp (10 mega base pairs)`````, it should be given as `````10000000`````. Default value is `````5 Mbp (5000000 bp)`````
 
-- ````` weights `````: Use this option to input the weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. To calculate the assembly score, we use multiple parameters like whether the assembly has a circular chromosome **(highest priority)**, number of circular contigs **(bonus for other circular contigs)**, number of contigs **(strong penalty for fragmented assemblies)** & N50 **(small bonus for continuity)**. The formula to calculate assembly score is `````Assembly score = 10*a + 2*b - 2*c + d/1e-6`````, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50. Default value is `````10,2,2````` as we can observe in the formula that these are the weights of a, b & c
+- ````` --weights `````: Use this option to input the weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. To calculate the assembly score, we use multiple parameters like whether the assembly has a circular chromosome **(highest priority)**, number of circular contigs **(bonus for other circular contigs)**, number of contigs **(strong penalty for fragmented assemblies)** & N50 **(small bonus for continuity)**. The formula to calculate assembly score is `````Assembly score = 10*a + 2*b - 2*c + d/1e-6`````, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50. Default value is `````10,2,2````` as we can observe in the formula that these are the weights of a, b & c
   
 - ````` -o `````: Path to the output directory where you want to save the assembly output. After assembly completion, the assembly statistics and contig circularity information (whether a contig is circular or linear) are provided in the `````report.tsv````` and `````circularity.tsv````` files within the `````given_output_folder_path/assembly/given_prefix/quast_outputs/````` folder, while assembly completeness and contamination are reported in `````checkm_summary.tsv````` file inside the `````given_output_folder_path/assembly/given_prefix/checkm_output/````` folder. If you have Pacbio HiFi reads or you used alternate parameters (`````--alt_param`````) for performing the assembly using Pacbio & Nanopore raw reads, the pipeline generates multiple assemblies using different assemblers or parameter settings and automatically selects the best assembly. The best selected assembly, along with its completeness, contamination, and summary statistics, is provided in the `````chosen_best_assembly.txt````` file, while the best selected assembly is saved as `````given_prefix.fasta`````. Both files are located inside the `````given_output_folder_path/assembly/given_prefix/````` folder 
 
@@ -150,8 +154,12 @@ options:
 
 - ````` --prefix `````: Specifies the prefix to be used for naming the assembly output files. **This parameter is mandatory**. If you are performing batch assemblies instead of a single-strain assembly, use **"NA"** as the value for this parameter
 
+- ````` --asm-coverage `````: Use this parameter to limit read coverage during the initial disjointig assembly. In cases of extremely high read coverage, the initial disjointig assembly may fail.This parameter should be used only with **raw PacBio and Oxford Nanopore (ONT) reads** and must not be used with **HiFi reads**. By default, the parameter is not set, meaning all reads are used for assembly. If the initial disjointigs fail to assemble due to excessive coverage, a recommended value is `````50`````, which restricts the initial disjointigs assembly to the longest 50× reads
+
 - ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
+- ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
+  
 ## taxonomy
 This sub-module is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
 `````shell
@@ -172,7 +180,9 @@ options:
                         path to the save the output of the taxonomy
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
+  --force               Override the output in the existing output directory
 `````
+
 - ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the taxonomy. Use this option to determine the taxonomy of a single genome
   
 - ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes whose taxonomy you want to identify. Use this option to determine the taxonomy of multiple genomes in a single run
@@ -180,6 +190,8 @@ options:
 - ````` -o `````: Path to the output directory where you want to save the taxonomy output. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the taxonomy results will be available in the `````given_output_folder_path/taxonomy/strainame/````` directory. You can find a summary of the taxonomy identified using both the NCBI and GTDB databases in the `````identified_taxonomy.txt````` file within the output directory (described in previous sentence), rather than checking individual output files
 
 - ````` -t `````: Number of threads to use while identifying the taxonomy. Default value is `````1`````
+
+- ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
 
 ## identify_bgcs
 This sub-module is responsible for identifying the BGCs in the input genome. To see all the available options, run the following command
@@ -202,7 +214,9 @@ options:
                         path to the output directory where you want to save the identified BGCs
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
+  --force               Override the output in the existing output directory
 `````
+
 - ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the BGCs. Use this option to idenitfy the BGCs of a single genome
   
 - ````` --input_dir `````: Path to the input directory containing FASTA files of the genomes for which you want to identify BGCs. Use this option to detect BGCs across multiple genomes in a single run
@@ -212,6 +226,8 @@ options:
 - ````` -o `````: Path to the output directory where you want to save the output of identified BGCs. Suppose, if your input FASTA file is named `````strainame.fasta`````, then the identified BGCs will be available in the `````given_output_folder_path/identified_bgcs/strainame/````` directory
 
 - ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
+
+- ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
 
 ## bgc_clustering
 This sub-module is responsible for clustering the BGCs to identify gene cluster families (GCFs). To see all the available options, run the following command
@@ -230,25 +246,22 @@ usage: loremine bgc_clustering [-h] [--input_dir INPUT_DIR] [--mibig]
 options:
   -h, --help            show this help message and exit
   --input_dir INPUT_DIR
-                        path to the input directory which contains all the
-                        bgcs for clustering
-  --mibig               Use this option when you want to include MiBiG BGCs
-                        for clustering
+                        path to the input directory which contains all the bgcs for clustering
+  --mibig               Use this option when you want to include MiBiG BGCs for clustering
   -o OUTPUT, --output OUTPUT
-                        path to the output directory which will contain the
-                        clustering output
+                        path to the output directory which will contain the clustering output
   --clustering_type CLUSTERING_TYPE
                         tool to use for clustering BGCs into GCFs. Possible inputs are "bigslice", "bigscape" or "both" (default = both)
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
-  --pfam_dir PFAM_DIR   Path to the directory where you have extracted the
-                        Pfam database. Please provide the complete path to the "Pfam-A.hmm"
-                        file
+  --pfam_dir PFAM_DIR   path to the directory where you have extracted the Pfam database. Please provide the complete path to the "Pfam-A.hmm" file
   --bigslice_cutoff BIGSLICE_CUTOFF
                         BiG-SLiCE cutoff value (default = 0.4)
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
+  --force               Override the output in the existing output directory
 `````
+
 - ````` --input_dir `````: Path to the input directory containing all BGC (.gbk) files to be clustered into Gene Cluster Families (GCFs)
 
 - ````` --mibig `````: This parameter indicates whether to include MiBiG (v4.0) BGCs for clustering or not. Using this parameter will **include MiBiG BGCs** along with input BGCs for clustering
@@ -264,6 +277,8 @@ options:
 - ````` --bigslice_cutoff `````: Cut-off to use for clustering using BiG-SliCE. Default value is `````0.4`````. **Increasing** the cut-off will result in smaller & more clusters, while **decreasing** the cut-off will result in larger & fewer clusters
 
 - ````` --bigscape_cutoff `````: Cut-off to use for clustering using BiG-SCAPE. Default value is `````0.5`````. **Decreasing** the cut-off will result in smaller & more clusters, while **increasing** the cut-off will result in larger & fewer clusters
+
+- ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
 
 ## all_submodules
 This sub-module executes the complete pipeline in a single run. It takes raw sequencing reads (from one or multiple strains) as input, performs genome assembly, taxonomic identification, BGC detection, and BGC clustering to identify Gene Cluster Families (GCFs).To see all the available options, run the following command
@@ -286,18 +301,23 @@ options:
   --pacbio-hifi PACBIO_HIFI
                         path to the input Pacbio HiFi reads (.bam file)
   --batch_run BATCH_RUN
-                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (deafult = 5000000 bp), prefix). No header is assumed, so
+                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so
                         start from first line itself
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
+  --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b =
+                        no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)
   -o OUTPUT, --output OUTPUT
                         path to the save the output of the pipeline
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
+  --asm-coverage ASM_COVERAGE
+                        reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters (True or False). Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi"
-                        reads
+                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
+                        Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   --mibig               Use this option when you want to include MiBiG BGCs for clustering
   --clustering_type CLUSTERING_TYPE
@@ -307,6 +327,7 @@ options:
                         BiG-SLiCE cutoff value (default = 0.4)
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
+  --force               Override the output in the existing output directory
 `````
 
 - ````` -o `````: Path to the output directory where you want to save the output of the pipeline. The output of all sub-modules will be saved in individual sub-module directories (`````given_output_folder_path/assembly/`````, `````given_output_folder_path/taxonomy/`````, `````given_output_folder_path/identified_bgcs/````` and `````given_output_folder_path/clustering/`````)
