@@ -13,17 +13,23 @@ To install it into the new environment:
 conda create -n loremine -c conda-forge -c kalininalab -c bioconda loremine
 conda activate loremine
 `````
+Or you can also use mamba instead of conda (usually faster):
+
+`````shell
+mamba create -n loremine -c conda-forge -c kalininalab -c bioconda loremine
+mamba activate loremine
+`````
 
 Or to install it into the already existing environment (for e.g: loremine):
 
 `````shell
-conda create -n loremine
+conda create -n loremine python=3.11.9
 conda activate loremine
 conda install -c conda-forge -c kalininalab -c bioconda loremine
 `````
-Or you can aslo use mamba instead of conda (usually faster):
+Or you can also use mamba instead of conda (usually faster):
 `````shell
-mamba create -n loremine
+mamba create -n loremine python=3.11.9
 mamba activate loremine
 mamba install -c conda-forge -c kalininalab -c bioconda loremine
 `````
