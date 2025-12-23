@@ -129,11 +129,12 @@ options:
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
                         reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for contig assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
                         Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
   --force               Override the output in the existing output directory
+  --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
 - ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-raw````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
@@ -165,6 +166,8 @@ options:
 - ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
 - ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
+
+- ````` --verbose `````: Use this parameter to control the level of output printed on the console. Possible values are `````0````` or `````1`````, where `````0````` prints only high-level pipeline status messages (e.g., current step and tool being executed), while `````1````` prints pipeline status messages and the full stdout/stderr output from all tools. Default value is `````0`````
   
 ## taxonomy
 This sub-module is responsible for determining the taxonomy of the input genome. To see all the available options, run the following command
@@ -187,6 +190,7 @@ options:
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --force               Override the output in the existing output directory
+  --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
 - ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the taxonomy. Use this option to determine the taxonomy of a single genome
@@ -198,6 +202,8 @@ options:
 - ````` -t `````: Number of threads to use while identifying the taxonomy. Default value is `````1`````
 
 - ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
+
+- ````` --verbose `````: Use this parameter to control the level of output printed on the console. Possible values are `````0````` or `````1`````, where `````0````` prints only high-level pipeline status messages (e.g., current step and tool being executed), while `````1````` prints pipeline status messages and the full stdout/stderr output from all tools. Default value is `````0`````
 
 ## identify_bgcs
 This sub-module is responsible for identifying the BGCs in the input genome. To see all the available options, run the following command
@@ -221,6 +227,7 @@ options:
   -t THREADS, --threads THREADS
                         number of threads to use, default = 1
   --force               Override the output in the existing output directory
+  --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
 - ````` -i `````: Path to the input FASTA file of the genome for which you want to identify the BGCs. Use this option to idenitfy the BGCs of a single genome
@@ -234,6 +241,8 @@ options:
 - ````` -t `````: Number of threads to use while identifying the BGCs. Default value is `````1`````
 
 - ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
+
+- ````` --verbose `````: Use this parameter to control the level of output printed on the console. Possible values are `````0````` or `````1`````, where `````0````` prints only high-level pipeline status messages (e.g., current step and tool being executed), while `````1````` prints pipeline status messages and the full stdout/stderr output from all tools. Default value is `````0`````
 
 ## bgc_clustering
 This sub-module is responsible for clustering the BGCs to identify gene cluster families (GCFs). To see all the available options, run the following command
@@ -266,6 +275,7 @@ options:
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
   --force               Override the output in the existing output directory
+  --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
 - ````` --input_dir `````: Path to the input directory containing all BGC (.gbk) files to be clustered into Gene Cluster Families (GCFs)
@@ -285,6 +295,8 @@ options:
 - ````` --bigscape_cutoff `````: Cut-off to use for clustering using BiG-SCAPE. Default value is `````0.5`````. **Decreasing** the cut-off will result in smaller & more clusters, while **increasing** the cut-off will result in larger & fewer clusters
 
 - ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
+
+- ````` --verbose `````: Use this parameter to control the level of output printed on the console. Possible values are `````0````` or `````1`````, where `````0````` prints only high-level pipeline status messages (e.g., current step and tool being executed), while `````1````` prints pipeline status messages and the full stdout/stderr output from all tools. Default value is `````0`````
 
 ## all_submodules
 This sub-module executes the complete pipeline in a single run. It takes raw sequencing reads (from one or multiple strains) as input, performs genome assembly, taxonomic identification, BGC detection, and BGC clustering to identify Gene Cluster Families (GCFs).To see all the available options, run the following command
@@ -320,7 +332,7 @@ options:
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
                         reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for contig assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
                         Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
@@ -334,6 +346,7 @@ options:
   --bigscape_cutoff BIGSCAPE_CUTOFF
                         BiG-SCAPE cutoff value (default = 0.5)
   --force               Override the output in the existing output directory
+  --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
 - ````` -o `````: Path to the output directory where you want to save the output of the pipeline. The output of all sub-modules will be saved in individual sub-module directories (`````given_output_folder_path/assembly/`````, `````given_output_folder_path/taxonomy/`````, `````given_output_folder_path/identified_bgcs/````` and `````given_output_folder_path/clustering/`````)
