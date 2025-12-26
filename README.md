@@ -129,7 +129,7 @@ options:
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
                         reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for contig assembly
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
                         Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
@@ -332,7 +332,7 @@ options:
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
                         reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for contig assembly
+                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
                         Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
