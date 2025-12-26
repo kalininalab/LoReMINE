@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 def identify_bgcs_single_genome(args):
 
@@ -13,7 +14,7 @@ def identify_bgcs_single_genome(args):
     else:
         command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + args.input_fasta
     print("Identifying BGCs for " + args.input_fasta + ' with ' + args.threads + ' threads\n')
-    os.system(command + " > /dev/null 2>&1")
+    run_command(command, verbosity=args.verbose)
     print("BGC identification completed for " + args.input_fasta + '\n')
     print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 
@@ -28,7 +29,7 @@ def identify_bgcs_single_genome_all_submodules(args, input_fasta, basepath):
     else:
         command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + input_fasta
     print("Identifying BGCs for " + input_fasta + ' with ' + args.threads + ' threads\n')
-    os.system(command + " > /dev/null 2>&1")
+    run_command(command, verbosity=args.verbose)
     print("BGC identification completed for " + input_fasta + '\n')
     print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
     bgc_output_path = basepath + "/identified_bgcs/" + filename
@@ -49,7 +50,7 @@ def identify_bgcs_multiple_genomes(args):
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " " + args.input_dir + '/' + file
         else:
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + args.input_dir + '/' + file
-        os.system(command + " > /dev/null 2>&1")
+        run_command(command, verbosity=args.verbose)
         print("BGC identification completed for " + file  + '\n')
         print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 
@@ -68,7 +69,7 @@ def identify_bgcs_multiple_genomes_all_submodules(args, input_dir, basepath):
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " " + input_dir + '/' + file
         else:
             command = "antismash --cb-general --cb-knownclusters --cb-subclusters --asf --pfam2go --smcog-trees --genefinding-tool prodigal --output-dir " + basepath + "/identified_bgcs/" + filename + "/ --output-basename " + filename + " -c " + args.threads + " --databases " + args.db_path + " " + input_dir + '/' + file
-        os.system(command + " > /dev/null 2>&1")
+        run_command(command, verbosity=args.verbose)
         print("BGC identification completed for " + file  + '\n')
         print("The identified BGCs can be found here:" + basepath + "/identified_bgcs/" + filename + "/\n\n")
 
@@ -82,3 +83,12 @@ def identify_bgcs_multiple_genomes_all_submodules(args, input_dir, basepath):
                 shutil.copy(bgc_output_path + '/' + bgc_file, basepath + '/identified_bgcs/identified_bgcs_all_strains/')
 
     return basepath + '/identified_bgcs/identified_bgcs_all_strains/'
+
+def run_command(cmd, verbosity=0):
+    """
+    Run a shell command with controlled verbosity
+    """
+    if verbosity == 0:
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    else:
+        subprocess.run(cmd, shell=True, check=True)

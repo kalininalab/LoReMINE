@@ -15,6 +15,7 @@ import glob
 from Bio import SeqIO
 import shutil
 import sys
+import subprocess
 
 def run_all_submodules(args):
 
@@ -71,7 +72,7 @@ def run_all_submodules(args):
         if not os.path.exists(basepath + '/assembly/' + args.prefix + '/best_assembly'):
             os.makedirs(basepath + '/assembly/' + args.prefix + '/best_assembly')
         readjusted_assembly_header_path = basepath + '/assembly/' + args.prefix + '/best_assembly/' + args.prefix + '.fasta'
-        reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/' + args.prefix + '/best_assembly/', args.prefix)
+        reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/' + args.prefix + '/best_assembly/', args.prefix, args)
 
         taxonomy_single_genome_all_submodules(args, readjusted_assembly_header_path, basepath)
         bgc_output_path = identify_bgcs_single_genome_all_submodules(args, readjusted_assembly_header_path, basepath)
@@ -137,7 +138,7 @@ def run_all_submodules(args):
                 if not os.path.exists(basepath + '/assembly/best_assemblies'):
                     os.makedirs(basepath + '/assembly/best_assemblies')
                 readjusted_assembly_header_path = basepath + '/assembly/best_assemblies/' + prefix + '.fasta'
-                reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/best_assemblies/', prefix)
+                reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/best_assemblies/', prefix, args)
 
         taxonomy_multiple_genomes_all_submodules(args, basepath + '/assembly/best_assemblies/', basepath)
         all_bgcs_path = identify_bgcs_multiple_genomes_all_submodules(args, basepath + '/assembly/best_assemblies/', basepath)
@@ -145,15 +146,15 @@ def run_all_submodules(args):
 
 
         if args.clustering_type == "bigslice":
-            run_bigslice_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
+            run_bigslice_clustering_all_submodules(args, all_bgcs_path, basepath)
         elif args.clustering_type == "bigscape":
-            run_bigscape_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
+            run_bigscape_clustering_all_submodules(args, all_bgcs_path, basepath)
         elif args.clustering_type == "both":
-            run_bigslice_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
-            run_bigscape_clustering_all_submodules(args, basepath + all_bgcs_path, basepath)
+            run_bigslice_clustering_all_submodules(args, all_bgcs_path, basepath)
+            run_bigscape_clustering_all_submodules(args, all_bgcs_path, basepath)
 
 
-def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_assemblies_path, prefix):
+def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_assemblies_path, prefix, args):
 
     """Rename the contig headers of a best selected genome assembly file so that all contigs are numbered sequentially with "prefix" also added to each contig header"""
 
@@ -169,7 +170,7 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
     if not os.path.exists(best_assemblies_path + "/quast_output"):
         os.makedirs(best_assemblies_path + "/quast_output")
 
-    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta + " > /dev/null 2>&1")
+    run_command("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta, verbosity=args.verbose)
 
     updated_circularity_file = open(best_assemblies_path + "/quast_output/" + prefix + "/circularity.tsv", 'x')
 
@@ -183,3 +184,12 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
             else:
                 split_array = line.split('\t')
                 updated_circularity_file.write(mapping[split_array[0].strip()] + '\t' + split_array[1].strip() + '\t' + split_array[2].strip() + '\n')
+
+def run_command(cmd, verbosity=0):
+    """
+    Run a shell command with controlled verbosity
+    """
+    if verbosity == 0:
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    else:
+        subprocess.run(cmd, shell=True, check=True)

@@ -2,6 +2,7 @@ import os
 import shutil
 import sqlite3
 from sqlite3 import Error
+import subprocess
 
 def run_bigslice_clustering(args):
 
@@ -41,7 +42,9 @@ def run_bigslice_clustering(args):
 
     bigslice_command = "bigslice -i " + basepath + "/bigslice/ --threshold " + str(args.bigslice_cutoff) + " -t " + str(args.threads) + " " + basepath + "/bigslice/output"
 
-    os.system(bigslice_command)
+    print("\n\nStarted the clustering using BiGSLiCE at threshold " + str(args.bigslice_cutoff) + "\n\n")
+
+    run_command(bigslice_command, verbosity=args.verbose)
 
     extract_bigslice_output(basepath + "/bigslice/output/")
 
@@ -84,7 +87,9 @@ def run_bigslice_clustering_all_submodules(args, input_dir, basepath):
 
     bigslice_command = "bigslice -i " + basepath + "/bigslice/ --threshold " + str(args.bigslice_cutoff) + " -t " + str(args.threads) + " " + basepath + "/bigslice/output"
 
-    os.system(bigslice_command)
+    print("\n\nStarted the clustering using BiGSLiCE at threshold " + str(args.bigslice_cutoff) + "\n\n")
+
+    run_command(bigslice_command, verbosity=args.verbose)
 
     extract_bigslice_output(basepath + "/bigslice/output/")
 
@@ -113,7 +118,9 @@ def run_bigscape_clustering(args):
     if args.mibig == True:
         bigscape_command += " --mibig-version 4.0"
 
-    os.system(bigscape_command)
+    print("\n\nStarted the clustering using BiGSCAPE at threshold " + str(args.bigscape_cutoff) + "\n\n")
+
+    run_command(bigscape_command, verbosity=args.verbose)
 
     filename = "mix_clustering_c" + str(args.bigscape_cutoff) + ".tsv"
 
@@ -147,7 +154,9 @@ def run_bigscape_clustering_all_submodules(args, input_dir, basepath):
     if args.mibig == True:
         bigscape_command += " --mibig-version 4.0"
 
-    os.system(bigscape_command)
+    print("\n\nStarted the clustering using BiGSCAPE at threshold " + str(args.bigscape_cutoff) + "\n\n")
+
+    run_command(bigscape_command, verbosity=args.verbose)
 
     filename = "mix_clustering_c" + str(args.bigscape_cutoff) + ".tsv"
 
@@ -311,3 +320,12 @@ def clean_bigscape_output(input_file, output_path):
                     write_file.write(line)
             else:
                 write_file.write(line)
+
+def run_command(cmd, verbosity=0):
+    """
+    Run a shell command with controlled verbosity
+    """
+    if verbosity == 0:
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    else:
+        subprocess.run(cmd, shell=True, check=True)

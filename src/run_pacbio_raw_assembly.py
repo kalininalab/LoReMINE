@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import shutil
 from Bio import SeqIO
+import subprocess
 from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_pacbio(args):
@@ -27,14 +28,16 @@ def perform_assembly_raw_reads_pacbio(args):
             flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size
         else:
             flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)
-        os.system(flye_command + " > /dev/null 2>&1")
+
+        print("Performing the genome assembly using Flye for " + args.prefix + "...")
+        run_command(flye_command, verbosity=args.verbose)
         os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
-        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta", args)
         os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"  # Collect the assembly stats using quast
-            os.system(quast_command + " > /dev/null 2>&1")
+            run_command(quast_command, verbosity=args.verbose)
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
             print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
             print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
@@ -51,14 +54,16 @@ def perform_assembly_raw_reads_pacbio(args):
                 flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size
             else:
                 flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)
-            os.system(flye_command + " > /dev/null 2>&1")
+
+            print("Performing the genome assembly using Flye for " + args.prefix + "at min-overlap: " + str(ele) + "...")
+            run_command(flye_command, verbosity=args.verbose)
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
-            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
+            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta", args)
             os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
-                os.system(quast_command + " > /dev/null 2>&1")
+                run_command(quast_command, verbosity=args.verbose)
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
                 continue
@@ -88,7 +93,7 @@ def perform_assembly_raw_reads_pacbio(args):
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + args.prefix + ".fasta")
     print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
     checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
-    os.system(checkm_command + " > /dev/null 2>&1")
+    run_command(checkm_command, verbosity=args.verbose)
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 
@@ -125,14 +130,16 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
             flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size
         else:
             flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)
-        os.system(flye_command + " > /dev/null 2>&1")
+
+        print("Performing the genome assembly using Flye for " + prefix + "...")
+        run_command(flye_command, verbosity=args.verbose)
         os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
-        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta")
+        filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta", args)
         os.remove(assembly_basepath + "/flye/assembly_temp.fasta")
         if os.path.isfile(assembly_basepath + "/flye/assembly.fasta"):
             print("\n\nAssembly completed. Collecting the assembly stats...\n\n")
             quast_command = "quast -o " + assembly_basepath + "/quast_outputs " + assembly_basepath + "/flye/assembly.fasta"   # Collect the assembly stats using quast
-            os.system(quast_command + " > /dev/null 2>&1")
+            run_command(quast_command, verbosity=args.verbose)
             generate_contig_circularity_info(assembly_basepath + "/quast_outputs", assembly_basepath + "/flye")
             print("Assembly stats can be found here: " + assembly_basepath + "/quast_outputs/report.pdf" + "\n")
             print("Contigs circularity stats can be found here: " + assembly_basepath + "/quast_outputs/circularity.tsv" + "\n\n")
@@ -149,14 +156,16 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
                 flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size
             else:
                 flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)
-            os.system(flye_command + " > /dev/null 2>&1")
+
+            print("Performing the genome assembly using Flye for " + prefix + "at min-overlap: " + str(ele) + "...")
+            run_command(flye_command, verbosity=args.verbose)
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
-            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta")
+            filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta", args)
             os.remove(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             if os.path.isfile(assembly_basepath + "/flye/" + str(ele)+  "/assembly.fasta"):
                 files_present[ele] = "yes"
                 quast_command = "quast -o " + assembly_basepath + "/quast_outputs/" + str(ele) + "/ " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta"   # Collect the assembly stats using quast
-                os.system(quast_command + " > /dev/null 2>&1")
+                run_command(quast_command, verbosity=args.verbose)
                 generate_contig_circularity_info(assembly_basepath + "/quast_outputs/" + str(ele), assembly_basepath + "/flye/" + str(ele))
             else:
                 continue
@@ -186,7 +195,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
     shutil.copyfile(final_assembly_path, assembly_basepath + "/checkm_output/best_selected_assembly/" + prefix + ".fasta")
     print("\n\nRunning the contamination and completeness check on the best selected assembly\n\n")
     checkm_command = "checkm lineage_wf -x fasta -t " + args.threads + " " + assembly_basepath + "/checkm_output/best_selected_assembly/" + " " + assembly_basepath + "/checkm_output"
-    os.system(checkm_command + " > /dev/null 2>&1")
+    run_command(checkm_command, verbosity=args.verbose)
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 
@@ -230,13 +239,13 @@ def generate_contig_circularity_info(quast_path, output_path):
                 write_file.write(split_array[0].strip() + '\tno' + '\t' + str(split_array[1].strip()) + '\n')
 
 
-def filter_low_quality_contigs(input_fasta, output_fasta):
+def filter_low_quality_contigs(input_fasta, output_fasta, args):
 
     """Checking the assemblies to filter out low quality contigs like homopolymer runs and SSRs"""
 
     masked_path = str(Path(input_fasta).resolve().parent)
     masked_file = masked_path + '/' + str(Path(input_fasta).resolve().stem) + "_masked.fasta"
-    os.system("dustmasker -in " + str(input_fasta) + " -outfmt fasta -out " + str(masked_file))
+    run_command("dustmasker -in " + str(input_fasta) + " -outfmt fasta -out " + str(masked_file), verbosity=args.verbose)
     with open(output_fasta, "w") as out:
         for record in SeqIO.parse(masked_file, "fasta"):
             low_record_quality = is_low_quality(record)
@@ -267,3 +276,12 @@ def is_low_quality(record):
         low_quality = "No"
 
     return low_quality
+
+def run_command(cmd, verbosity=0):
+    """
+    Run a shell command with controlled verbosity
+    """
+    if verbosity == 0:
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    else:
+        subprocess.run(cmd, shell=True, check=True)

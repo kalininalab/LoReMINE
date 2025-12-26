@@ -15,6 +15,7 @@ import shutil
 import os
 import glob
 from pathlib import Path
+import subprocess
 
 def main():
     # Create the parser
@@ -37,6 +38,7 @@ def main():
     parser_assemble.add_argument('--asm-coverage', type=str, help="reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then suggested value is \"50\", so that it uses longest 50x reads for initial disjointigs assembly")
     parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default=False)
     parser_assemble.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
+    parser_assemble.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
     #################################################  Parser for identifying the taxonomy of the genome ############################################
 
@@ -46,6 +48,7 @@ def main():
     parser_taxonomy.add_argument('-o', '--output', type=str, help='path to the save the output of the taxonomy', required=True)
     parser_taxonomy.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_taxonomy.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
+    parser_taxonomy.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
     #################################################  Parser for identifying the BGCs in the genome ############################################
 
@@ -56,6 +59,7 @@ def main():
     parser_bgc_identification.add_argument('-o', '--output', type=str, help='path to the output directory where you want to save the identified BGCs', required=True)
     parser_bgc_identification.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_bgc_identification.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
+    parser_bgc_identification.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
     #################################################  Parser for running the BGC clustering ############################################
 
@@ -69,6 +73,7 @@ def main():
     parser_bgc_clustering.add_argument('--bigslice_cutoff',type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_bgc_clustering.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
     parser_bgc_clustering.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
+    parser_bgc_clustering.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
     #################################################  Parser for running the whole pipeline together ############################################
 
@@ -92,6 +97,7 @@ def main():
     parser_all_submodules.add_argument('--bigslice_cutoff', type=float, help='BiG-SLiCE cutoff value (default = 0.4)', default = 0.4)
     parser_all_submodules.add_argument('--bigscape_cutoff', type=float, help='BiG-SCAPE cutoff value (default = 0.5)', default = 0.5)
     parser_all_submodules.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
+    parser_all_submodules.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
     args = parser.parse_args()
 
@@ -160,7 +166,7 @@ def main():
             if not os.path.exists(basepath + '/assembly/' + args.prefix + '/best_assembly'):
                 os.makedirs(basepath + '/assembly/' + args.prefix + '/best_assembly')
             readjusted_assembly_header_path = basepath + '/assembly/' + args.prefix + '/best_assembly/' + args.prefix + '.fasta'
-            reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/' + args.prefix + '/best_assembly/', args.prefix)
+            reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/' + args.prefix + '/best_assembly/', args.prefix, args)
 
         else:
 
@@ -215,7 +221,7 @@ def main():
                     if not os.path.exists(basepath + '/assembly/best_assemblies'):
                         os.makedirs(basepath + '/assembly/best_assemblies')
                     readjusted_assembly_header_path = basepath + '/assembly/best_assemblies/' + prefix + '.fasta'
-                    reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/best_assemblies/', prefix)
+                    reheader_fasta(final_assembly_path, readjusted_assembly_header_path, final_circularity_file_path, basepath + '/assembly/best_assemblies/', prefix, args)
 
 
     elif args.command == "taxonomy":
@@ -250,7 +256,7 @@ def main():
         sys.exit(1)
 
 
-def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_assemblies_path, prefix):
+def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_assemblies_path, prefix, args):
 
     """Rename the contig headers of a best selected genome assembly file so that all contigs are numbered sequentially with "prefix" also added to each contig header"""
 
@@ -266,7 +272,7 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
     if not os.path.exists(best_assemblies_path + "/quast_output"):
         os.makedirs(best_assemblies_path + "/quast_output")
 
-    os.system("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta + " > /dev/null 2>&1")
+    run_command("quast -o " + best_assemblies_path + "/quast_output/" + prefix + "/ " + output_fasta, verbosity=args.verbose)
 
     updated_circularity_file = open(best_assemblies_path + "/quast_output/" + prefix + "/circularity.tsv", 'x')
 
@@ -280,6 +286,15 @@ def reheader_fasta(input_fasta, output_fasta, final_circularity_file_path, best_
             else:
                 split_array = line.split('\t')
                 updated_circularity_file.write(mapping[split_array[0].strip()] + '\t' + split_array[1].strip() + '\t' + split_array[2].strip() + '\n')
+
+def run_command(cmd, verbosity=0):
+    """
+    Run a shell command with controlled verbosity
+    """
+    if verbosity == 0:
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    else:
+        subprocess.run(cmd, shell=True, check=True)
 
 if __name__ == "__main__":
     main()
