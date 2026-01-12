@@ -83,13 +83,13 @@ def evaluate_assemblies(quast_dirs, genome_size, weights, best_assembly_store_pa
 
     #df_sorted = df.sort_values(by=["score", "total_length"], ascending=[False, False])
 
-    print("\n📊 Assembly Ranking Summary:\n")
-    best_assembly_file.write("\n📊 Assembly Ranking Summary:\n\n")
+    print("\n Assembly Ranking Summary:\n")
+    best_assembly_file.write("\n Assembly Ranking Summary:\n\n")
     # print(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length", "score"]])
     print(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length"]])
     best_assembly_file.write(str(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length"]]) + '\n\n')
 
     best = df_sorted.iloc[0]
-    print(f"\n✅ Best Assembly: {best['assembly_name']}")
-    best_assembly_file.write(f"\n✅ Best Assembly according to us: {best['assembly_name']}")
+    print(f"\n Best Assembly: {best['assembly_name']}")
+    best_assembly_file.write(f"\n Best Assembly according to us: {best['assembly_name']}")
     return best["assembly_name"]
