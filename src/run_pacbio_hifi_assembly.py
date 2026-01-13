@@ -100,7 +100,9 @@ def perform_assembly_hifi_reads(args):
             contamination = str(split_array[-2].strip())
 
     with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
-        best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+        best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
+        best_assembly_file.write("The contamination and completeness stats of the best chosen assembly is given below:\n")
+        best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
         best_assembly_file.write("Completeness: " + completeness + '\n')
         best_assembly_file.write("Contamination: " + contamination + '\n')
 
@@ -201,7 +203,9 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
             contamination = str(split_array[-2].strip())
 
     with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
-        best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+        best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
+        best_assembly_file.write("The contamination and completeness stats of the best chosen assembly is given below:\n")
+        best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
         best_assembly_file.write("Completeness: " + completeness + '\n')
         best_assembly_file.write("Contamination: " + contamination + '\n')
 

@@ -55,7 +55,7 @@ def perform_assembly_raw_reads_pacbio(args):
             else:
                 flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)
 
-            print("Performing the genome assembly using Flye for " + args.prefix + "at min-overlap: " + str(ele) + "...")
+            print("Performing the genome assembly using Flye for " + args.prefix + " at min-overlap: " + str(ele) + "...")
             run_command(flye_command, verbosity=args.verbose)
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta", args)
@@ -106,7 +106,9 @@ def perform_assembly_raw_reads_pacbio(args):
                 contamination = str(split_array[-2].strip())
 
         with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
-            best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+            best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
+            best_assembly_file.write("The contamination and completeness stats of the best chosen assembly is given below:\n")
+            best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
             best_assembly_file.write("Completeness: " + completeness + '\n')
             best_assembly_file.write("Contamination: " + contamination + '\n')
 
@@ -157,7 +159,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
             else:
                 flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/" + str(ele) + "/ -t " + args.threads + " -i 3 --scaffold -m " + str(ele) + " -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)
 
-            print("Performing the genome assembly using Flye for " + prefix + "at min-overlap: " + str(ele) + "...")
+            print("Performing the genome assembly using Flye for " + prefix + " at min-overlap: " + str(ele) + "...")
             run_command(flye_command, verbosity=args.verbose)
             os.system("mv " + assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta " + assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta")
             filter_low_quality_contigs(assembly_basepath + "/flye/" + str(ele) + "/assembly_temp.fasta", assembly_basepath + "/flye/" + str(ele) + "/assembly.fasta", args)
@@ -208,7 +210,9 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
                 contamination = str(split_array[-2].strip())
 
         with open(assembly_basepath + "/chosen_best_assembly.txt", 'a') as best_assembly_file:
-            best_assembly_file.write("\n\nThe contamination and completeness stats of the best chosen assembly is given below:\n\n")
+            best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
+            best_assembly_file.write("The contamination and completeness stats of the best chosen assembly is given below:\n")
+            best_assembly_file.write("-" * len("The contamination and completeness stats of the best chosen assembly is given below:") + "\n")
             best_assembly_file.write("Completeness: " + completeness + '\n')
             best_assembly_file.write("Contamination: " + contamination + '\n')
 

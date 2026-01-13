@@ -83,13 +83,26 @@ def evaluate_assemblies(quast_dirs, genome_size, weights, best_assembly_store_pa
 
     #df_sorted = df.sort_values(by=["score", "total_length"], ascending=[False, False])
 
-    print("\n Assembly Ranking Summary:\n")
-    best_assembly_file.write("\n Assembly Ranking Summary:\n\n")
+    header_text = "ASSEMBLY RANKING SUMMARY"
+    border = "=" * (len(header_text) + 4)
+    print(f"{border}\n")
+    print(f"| {header_text} |\n")
+    print(f"{border}\n")
+    best_assembly_file.write(f"{border}\n")
+    best_assembly_file.write(f"| {header_text} |\n")
+    best_assembly_file.write(f"{border}\n")
+
     # print(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length", "score"]])
     print(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length"]])
     best_assembly_file.write(str(df_sorted[["assembly_name", "has_circular_chromosome", "num_circular", "num_contigs", "N50", "total_length"]]) + '\n\n')
 
     best = df_sorted.iloc[0]
-    print(f"\n Best Assembly: {best['assembly_name']}")
-    best_assembly_file.write(f"\n Best Assembly according to us: {best['assembly_name']}")
+    verdict_text = f"BEST ASSEMBLY ACCORDING TO US: {best['assembly_name']}"
+    star_border = "*" * (len(verdict_text) + 4)
+    print(f"{star_border}\n")
+    print(f"* {verdict_text} *\n")
+    print(f"{star_border}\n\n")
+    best_assembly_file.write(f"{star_border}\n")
+    best_assembly_file.write(f"* {verdict_text} *\n")
+    best_assembly_file.write(f"{star_border}\n\n")
     return best["assembly_name"]
