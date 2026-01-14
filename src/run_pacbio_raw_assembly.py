@@ -23,7 +23,7 @@ def perform_assembly_raw_reads_pacbio(args):
     suffixes = Path(args.reads).suffixes
     raw_reads_filename = args.prefix + "".join(suffixes)
 
-    if args.alt_param == False:   # Performing the assembly using default parameters
+    if args.alt_param == "False":   # Performing the assembly using default parameters
         if args.asm_coverage == None:
             flye_command = "flye --pacbio-raw " + basepath + "/raw_reads/" + raw_reads_filename + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size
         else:
@@ -79,7 +79,7 @@ def perform_assembly_raw_reads_pacbio(args):
         best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), args.genome_size, args.weights, assembly_basepath + "/")   # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
-    if args.alt_param == False:
+    if args.alt_param == "False":
         final_assembly_path = assembly_basepath + "/flye/assembly.fasta"
         final_circularity_file_path = assembly_basepath + "/quast_outputs/circularity.tsv"
     else:
@@ -97,7 +97,7 @@ def perform_assembly_raw_reads_pacbio(args):
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 
-    if args.alt_param == True:
+    if args.alt_param == "True":
         with open(assembly_basepath + "/checkm_output/checkm_summary.tsv") as checkm_file:
             next(checkm_file)
             for line in checkm_file:
@@ -127,7 +127,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
     os.makedirs(assembly_basepath + "/flye")
     os.makedirs(assembly_basepath + "/quast_outputs")
 
-    if args.alt_param == False:  # Performing the assembly using default parameters
+    if args.alt_param == "False":  # Performing the assembly using default parameters
         if args.asm_coverage == None:
             flye_command = "flye --pacbio-raw " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size
         else:
@@ -183,7 +183,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
         best_assembly = evaluate_assemblies(glob.glob(assembly_basepath + "/quast_outputs/*"), genome_size, args.weights, assembly_basepath + "/")  # Choosing the best assembly out of all the assemblies created using alternate parameters
         print("The best assembly (among all assemblies) according to us can be found here: " + assembly_basepath + "/flye/" + str(best_assembly) + "/assembly.fasta")
 
-    if args.alt_param == False:
+    if args.alt_param == "False":
         final_assembly_path = assembly_basepath + "/flye/assembly.fasta"
         final_circularity_file_path = assembly_basepath + "/quast_outputs/circularity.tsv"
     else:
@@ -201,7 +201,7 @@ def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_siz
     os.system("checkm qa " + assembly_basepath + "/checkm_output/lineage.ms " + assembly_basepath + "/checkm_output -o 1 -t " + args.threads + " --tab_table --file " + assembly_basepath + "/checkm_output/checkm_summary.tsv")
     print("\n\nYou can find the contamination and completeness stats of the best selected assembly here: " + assembly_basepath + "/checkm_output/checkm_summary.tsv\n\n")
 
-    if args.alt_param == True:
+    if args.alt_param == "True":
         with open(assembly_basepath + "/checkm_output/checkm_summary.tsv") as checkm_file:
             next(checkm_file)
             for line in checkm_file:
