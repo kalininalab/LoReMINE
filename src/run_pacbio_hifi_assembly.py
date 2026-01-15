@@ -19,7 +19,11 @@ def perform_assembly_hifi_reads(args):
     os.makedirs(assembly_basepath + "/flye")
     print("Performing the genome assembly using Flye for " + args.prefix + "...")
 
-    flye_command = "flye --pacbio-hifi " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold --asm-coverage 50 -g " + args.genome_size  # Performing the assembly using flye
+    if args.asm_coverage == None:
+        flye_command = "flye --pacbio-hifi " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size  # Performing the assembly using flye
+    else:
+        flye_command = "flye --pacbio-hifi " + basepath + "/raw_reads/" + args.prefix + ".fastq -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + args.genome_size + " --asm-coverage " + str(args.asm_coverage)  # Performing the assembly using flye
+
     run_command(flye_command, verbosity=args.verbose)
     os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
     filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta", args)
@@ -122,7 +126,11 @@ def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, pre
     os.makedirs(assembly_basepath + "/flye")
     print("Performing the genome assembly using Flye for " + prefix + "...")
 
-    flye_command = "flye --pacbio-hifi " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold --asm-coverage 50 -g " + genome_size  # Performing the assembly using flye
+    if args.asm_coverage == None:
+        flye_command = "flye --pacbio-hifi " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size  # Performing the assembly using flye
+    else:
+        flye_command = "flye --pacbio-hifi " + raw_reads_path + " -o " + assembly_basepath + "/flye/ -t " + args.threads + " -i 3 --scaffold -g " + genome_size + " --asm-coverage " + str(args.asm_coverage)  # Performing the assembly using flye
+
     run_command(flye_command, verbosity=args.verbose)
     os.system("mv " + assembly_basepath + "/flye/assembly.fasta " + assembly_basepath + "/flye/assembly_temp.fasta")
     filter_low_quality_contigs(assembly_basepath + "/flye/assembly_temp.fasta", assembly_basepath + "/flye/assembly.fasta", args)
