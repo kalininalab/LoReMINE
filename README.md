@@ -128,7 +128,7 @@ options:
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
-                        reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
+                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
                         assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
@@ -161,7 +161,7 @@ options:
 
 - ````` --prefix `````: Specifies the prefix to be used for naming the assembly output files. **This parameter is mandatory**. If you are performing batch assemblies instead of a single-strain assembly, use **"NA"** as the value for this parameter
 
-- ````` --asm-coverage `````: Use this parameter to limit read coverage during the initial disjointig assembly. In cases of extremely high read coverage, the initial disjointig assembly may fail.This parameter should be used only with **raw PacBio and Oxford Nanopore (ONT) reads** and must not be used with **HiFi reads**. By default, the parameter is not set, meaning all reads are used for assembly. If the initial disjointigs fail to assemble due to excessive coverage, a recommended value is `````50`````, which restricts the initial disjointigs assembly to the longest 50× reads
+- ````` --asm-coverage `````: Use this parameter to limit read coverage during the initial disjointig assembly. In cases of extremely high read coverage, the initial disjointig assembly may fail. By default, the parameter is not set, meaning all reads are used for assembly. If the initial disjointigs fail to assemble due to excessive coverage, a recommended value is `````50`````, which restricts the initial disjointigs assembly to the longest 50× reads
 
 - ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
@@ -331,7 +331,7 @@ options:
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
-                        reduced coverage for initial disjointig assembly (Used only for raw Pacbio and ONT reads) incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
+                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
                         assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
                         Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
