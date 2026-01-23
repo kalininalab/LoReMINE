@@ -111,6 +111,11 @@ def main():
         else:
             shutil.rmtree(outdir)
 
+    if args.command in {"assemble", "all_submodules"}:
+        if args.reads is not None and args.reads_type is None:
+            print("\n[ERROR] Input reads were provided, but the read type was not specified. Please specify the read type using '--reads_type' parameter\n")
+            sys.exit(1)
+
     if args.command == 'assemble':
 
         final_assembly_path = ""
