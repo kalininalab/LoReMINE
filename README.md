@@ -108,16 +108,16 @@ usage: loremine assemble [-h] [--reads READS] [--reads_type READS_TYPE] [--pacbi
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-clr" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
-  --pacbio-raw PACBIO_RAW
-                        path to the input Pacbio raw reads (.bam file)
+                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "clr_pacbio", "ont" or "hifi_pacbio"
+  --pacbio-clr PACBIO_CLR
+                        path to the input Pacbio CLR reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
                         path to the input Pacbio HiFi reads (.bam file)
   --batch_run BATCH_RUN
-                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so
-                        start from first line itself
+                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (clr_pacbio, ont or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from
+                        first line itself
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
   --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b =
@@ -128,26 +128,26 @@ options:
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
-                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
+                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then
+                        suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
-                        Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
+                        Run the assembly using Pacbio CLR or ONT reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio CLR or
+                        ONT reads and not with Pacbio HiFi reads
   --force               Override the output in the existing output directory
   --verbose VERBOSE     Verbosity level of the output. Possible inputs are "0" or "1", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)
 `````
 
-- ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-raw````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
+- ````` --reads `````: Use this option if you have `````.fastq````` or `````.fastq.gz````` file for the input reads. If you still have the `````.bam````` file for the reads from Pacbio, then use the `````--pacbio-clr````` or `````--pacbio-hifi````` option to input the reads file depending on whether the reads are raw or HiFi
   
-- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly
+- ````` --reads_type `````: Use this option to input the type of reads you have in `````.fastq````` or `````.fastq.gz````` file. Possible options for this parameter are `````clr_pacbio`````, `````ont````` or `````hifi_pacbio`````. This parameter is important because depending on the type of input reads, the pipeline uses different assemblers to perform the assembly
 
-- ````` --pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio raw reads
+- ````` --pacbio-raw `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio CLR reads
 
 - ````` --pacbio-hifi `````: Use this option to input the `````.bam````` file, if your input reads are Pacbio HiFi reads
 
 -  ````` --batch_run `````: Use this option to assemble multiple strains simultaneously instead of performing individual assemblies for each strain. An example file named `````input_batch_run.tsv````` is provided in the repository and can be used as a template for this parameter. As an input, it requires a **".tsv"** file which should contain 4 columns
     - 1st column is the path to raw reads (`````.fastq````` or `````.fastq.gz`````) file. It does not accept reads in `````.bam````` format. To convert the reads from `````.bam````` to `````.fastq````` format, you can use the following command `````samtools fastq input_filename.bam > output_filename.fastq`````
-    - 2nd column should contain the type of reads (`````raw_pacbio`````, `````raw_nanopore````` or `````hifi_pacbio`````)
+    - 2nd column should contain the type of reads (`````clr_pacbio`````, `````ont````` or `````hifi_pacbio`````)
     - 3rd column should contain the genome size (if you already know, else the default is 5000000 bp)
     - 4th column should specify the **"prefix"** to use while saving the strain's assembly
     
@@ -163,7 +163,7 @@ options:
 
 - ````` --asm-coverage `````: Use this parameter to limit read coverage during the initial disjointig assembly. In cases of extremely high read coverage, the initial disjointig assembly may fail. By default, the parameter is not set, meaning all reads are used for assembly. If the initial disjointigs fail to assemble due to excessive coverage, a recommended value is `````50`````, which restricts the initial disjointigs assembly to the longest 50× reads
 
-- ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for PacBio or Nanopore **raw reads** and should not be used with PacBio **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
+- ````` --alt_param `````: Use this parameter only if the assembly results obtained with the default settings are unsatisfactory. It is applicable only for **PacBio CLR or ONT reads** and should not be used with **PacBio** **HiFi reads**. Possible values are `````True````` or `````False`````. Default value is `````False`````
 
 - ````` --force `````: Use this parameter to allow writing output to an existing output directory. By default, the pipeline will terminate with an error if the specified output directory already exists. When `````--force````` is enabled, the existing output directory is overwritten and the pipeline proceeds normally
 
@@ -311,16 +311,16 @@ usage: loremine all_submodules [-h] [--reads READS] [--reads_type READS_TYPE] [-
 
 options:
   -h, --help            show this help message and exit
-  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-raw" or "--pacbio-hifi"
+  --reads READS         path to the input reads (.fastq or .fastq.gz format). If ".bam" file is available instead of ".fastq" file, then use the "--pacbio-clr" or "--pacbio-hifi"
   --reads_type READS_TYPE
-                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "raw_pacbio", "raw_nanopore" or "hifi_pacbio"
-  --pacbio-raw PACBIO_RAW
-                        path to the input Pacbio raw reads (.bam file)
+                        type of reads in the ".fastq" or ".fastq.gz" file. Possible inputs are "clr_pacbio", "ont" or "hifi_pacbio"
+  --pacbio-clr PACBIO_CLR
+                        path to the input Pacbio CLR reads (.bam file)
   --pacbio-hifi PACBIO_HIFI
                         path to the input Pacbio HiFi reads (.bam file)
   --batch_run BATCH_RUN
-                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so
-                        start from first line itself
+                        path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (clr_pacbio, ont or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from
+                        first line itself
   -g GENOME_SIZE, --genome-size GENOME_SIZE
                         estimated genome size (default = 5000000 bp (5Mbp))
   --weights WEIGHTS     weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b =
@@ -331,11 +331,11 @@ options:
                         number of threads to use, default = 1
   --prefix PREFIX       Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter
   --asm-coverage ASM_COVERAGE
-                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get
-                        assembled due to very high coverage, then suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
+                        reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then
+                        suggested value is "50", so that it uses longest 50x reads for initial disjointigs assembly
   --alt_param ALT_PARAM
-                        Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with
-                        Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads
+                        Run the assembly using Pacbio CLR or ONT reads with alternate parameters. Possible inputs are "True" or "False" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio CLR or
+                        ONT reads and not with Pacbio HiFi reads
   --db_path DB_PATH     path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location
   --mibig               Use this option when you want to include MiBiG BGCs for clustering
   --clustering_type CLUSTERING_TYPE
