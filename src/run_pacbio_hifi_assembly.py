@@ -9,7 +9,7 @@ from src.evaluate_best_assembly import *
 
 def perform_assembly_hifi_reads(args):
 
-    """Perform the genome assembly using pacbio hifi reads"""
+    """Perform the genome assembly using Pacbio HiFi reads"""
 
     basepath = os.path.abspath(args.output)
     os.makedirs(basepath + "/assembly")
@@ -115,7 +115,7 @@ def perform_assembly_hifi_reads(args):
 
 def perform_assembly_hifi_reads_batch_run(args, raw_reads_path, genome_size, prefix, output_path):
 
-    """Perform the genome assembly using pacbio hifi reads (while running the whole pipeline together)"""
+    """Perform the genome assembly using Pacbio HiFi reads (while running the whole pipeline together)"""
 
     basepath = output_path
     if not os.path.exists(basepath + "/assembly"):

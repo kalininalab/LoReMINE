@@ -8,7 +8,7 @@ from src.evaluate_best_assembly import *
 
 def perform_assembly_raw_reads_pacbio(args):
 
-    """Perform the genome assembly using pacbio raw reads"""
+    """Perform the genome assembly using Pacbio CLR reads"""
 
     basepath = os.path.abspath(args.output)
     os.makedirs(basepath + "/assembly")
@@ -117,7 +117,7 @@ def perform_assembly_raw_reads_pacbio(args):
 
 def perform_assembly_raw_reads_pacbio_batch_run(args, raw_reads_path, genome_size, prefix, output_path):
 
-    """Perform the genome assembly using pacbio raw reads (while running the whole pipeline together)"""
+    """Perform the genome assembly using Pacbio CLR reads (while running the whole pipeline together)"""
 
     basepath = output_path
     if not os.path.exists(basepath + "/assembly"):

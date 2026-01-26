@@ -26,29 +26,29 @@ def run_all_submodules(args):
 
         """Running the whole pipeline for a single strain"""
 
-        if args.pacbio_raw != None: # If the input reads are in .bam file, then converting it to fastq
-            print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
+        if args.pacbio_clr != None: # If the input reads are in .bam file, then converting it to fastq
+            print('Pacbio CLR reads provided at this location:' + os.path.abspath(args.pacbio_clr))
             convert_reads(args)
-            print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+            print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
             final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
         elif args.pacbio_hifi != None: # If the input reads are in .bam file, then converting it to fastq
             print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
             convert_reads(args)
-            print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+            print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
             final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
-        elif args.pacbio_raw != None and args.pacbio_hifi != None:
-            print("Sorry, we need only single type of reads (Raw or HiFi)")
+        elif args.pacbio_clr != None and args.pacbio_hifi != None:
+            print("Sorry, we need only single type of reads (CLR or HiFi)")
             sys.exit(1)
 
-        elif args.reads != None and args.reads_type == "raw_pacbio":
-            print('Pacbio raw reads provided at this location:' + os.path.abspath(args.reads))
+        elif args.reads != None and args.reads_type == "clr_pacbio":
+            print('Pacbio CLR reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
             suffixes = Path(args.reads).suffixes
             raw_reads_filename = args.prefix + "".join(suffixes)
             shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-            print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+            print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
             final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
         elif args.reads != None and args.reads_type == "hifi_pacbio":
@@ -57,16 +57,16 @@ def run_all_submodules(args):
             suffixes = Path(args.reads).suffixes
             raw_reads_filename = args.prefix + "".join(suffixes)
             shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-            print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+            print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
             final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
-        elif args.reads != None and args.reads_type == "raw_nanopore":
-            print('Nanopore raw reads provided at this location:' + os.path.abspath(args.reads))
+        elif args.reads != None and args.reads_type == "ont":
+            print('Nanopore reads provided at this location:' + os.path.abspath(args.reads))
             os.makedirs(args.output + "/raw_reads")
             suffixes = Path(args.reads).suffixes
             raw_reads_filename = args.prefix + "".join(suffixes)
             shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-            print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
+            print("\n\nStaring the assembly using Nanopore reads now.....\n\n")
             final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore(args)
 
         if not os.path.exists(basepath + '/assembly/' + args.prefix + '/best_assembly'):
@@ -112,27 +112,27 @@ def run_all_submodules(args):
                     suffixes = Path(raw_reads_location).suffixes
                     raw_reads_filename = prefix + "".join(suffixes)
                     shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
-                    print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+                    print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
                     final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads_batch_run(args, basepath + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, basepath)
 
-                elif reads_type == "raw_pacbio":
-                    print('Pacbio raw reads provided at this location:' + raw_reads_location)
+                elif reads_type == "clr_pacbio":
+                    print('Pacbio CLR reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
                     suffixes = Path(raw_reads_location).suffixes
                     raw_reads_filename = prefix + "".join(suffixes)
                     shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
-                    print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+                    print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
                     final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio_batch_run(args, basepath + "/raw_reads/" + raw_reads_filename, genome_size, prefix, basepath)
 
-                elif reads_type == "raw_nanopore":
-                    print('Nanopore raw reads provided at this location:' + raw_reads_location)
+                elif reads_type == "ont":
+                    print('Nanopore reads provided at this location:' + raw_reads_location)
                     if not os.path.exists(basepath + "/raw_reads"):
                         os.makedirs(basepath + "/raw_reads")
                     suffixes = Path(raw_reads_location).suffixes
                     raw_reads_filename = prefix + "".join(suffixes)
                     shutil.copyfile(raw_reads_location, basepath + "/raw_reads/" + raw_reads_filename)
-                    print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
+                    print("\n\nStaring the assembly using Nanopore reads now.....\n\n")
                     final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore_batch_run(args, basepath + "/raw_reads/" + raw_reads_filename, genome_size, prefix, basepath)
 
                 if not os.path.exists(basepath + '/assembly/best_assemblies'):

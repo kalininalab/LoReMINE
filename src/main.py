@@ -25,18 +25,18 @@ def main():
 
     subparsers = parser.add_subparsers(dest='command', required=True)
     parser_assemble = subparsers.add_parser('assemble', help='run automated genome assembly pipeline')
-    parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
-    parser_assemble.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
-    parser_assemble.add_argument('--pacbio-raw',type=str, help='path to the input Pacbio raw reads (.bam file)')
+    parser_assemble.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-clr\" or \"--pacbio-hifi\"')
+    parser_assemble.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"clr_pacbio\", \"ont\" or \"hifi_pacbio\"')
+    parser_assemble.add_argument('--pacbio-clr',type=str, help='path to the input Pacbio CLR reads (.bam file)')
     parser_assemble.add_argument('--pacbio-hifi',type=str, help='path to the input Pacbio HiFi reads (.bam file)')
-    parser_assemble.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
+    parser_assemble.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (clr_pacbio, ont or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_assemble.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))',default="5000000")
     parser_assemble.add_argument('--weights', type=str, help='weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)', default="10,2,2")
     parser_assemble.add_argument('-o', '--output',type=str, help='path to the save the output of the assembly', required=True)
     parser_assemble.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_assemble.add_argument('--prefix',type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
     parser_assemble.add_argument('--asm-coverage', type=str, help="reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then suggested value is \"50\", so that it uses longest 50x reads for initial disjointigs assembly")
-    parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default="False")
+    parser_assemble.add_argument('--alt_param', type=str, help='Run the assembly using Pacbio CLR or ONT reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio CLR or ONT reads and not with Pacbio HiFi reads', default="False")
     parser_assemble.add_argument('--force', action="store_true", help="Override the output in the existing output directory")
     parser_assemble.add_argument("--verbose", type=int, default=0, help="Verbosity level of the output. Possible inputs are \"0\" or \"1\", where 0 = only prints status of the pipeline, 1 = prints status of the pipeline + output of each tools (default = 0)")
 
@@ -78,18 +78,18 @@ def main():
     #################################################  Parser for running the whole pipeline together ############################################
 
     parser_all_submodules = subparsers.add_parser('all_submodules', help='Run all the submodules (assemble, taxonomy, identify_bgcs, bgc_clustering) together in one run')
-    parser_all_submodules.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-raw\" or \"--pacbio-hifi\"')
-    parser_all_submodules.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"raw_pacbio\", \"raw_nanopore\" or \"hifi_pacbio\"')
-    parser_all_submodules.add_argument('--pacbio-raw', type=str, help='path to the input Pacbio raw reads (.bam file)')
+    parser_all_submodules.add_argument('--reads', type=str, help='path to the input reads (.fastq or .fastq.gz format). If \".bam\" file is available instead of \".fastq\" file, then use the \"--pacbio-clr\" or \"--pacbio-hifi\"')
+    parser_all_submodules.add_argument('--reads_type', type=str, help='type of reads in the \".fastq\" or \".fastq.gz\" file. Possible inputs are \"clr_pacbio\", \"ont\" or \"hifi_pacbio\"')
+    parser_all_submodules.add_argument('--pacbio-clr', type=str, help='path to the input Pacbio CLR reads (.bam file)')
     parser_all_submodules.add_argument('--pacbio-hifi', type=str, help='path to the input Pacbio HiFi reads (.bam file)')
-    parser_all_submodules.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (raw_pacbio, raw_nanopore or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
+    parser_all_submodules.add_argument('--batch_run', type=str, help='path to the .tsv (tab seperated) file which contains 4 columns in the following order (Location of raw reads (.fastq format), type of reads (clr_pacbio, ont or hifi_pacbio), genome size (default = 5000000 bp), prefix). No header is assumed, so start from first line itself')
     parser_all_submodules.add_argument('-g', '--genome-size', type=str, help='estimated genome size (default = 5000000 bp (5Mbp))', default="5000000")
     parser_all_submodules.add_argument('--weights', type=str, help='weights of parameters (a,b & c) for calculating the assembly score while selecting the best assembly among different candidate assemblies. The formula to calculate assembly score is: 10*a + 2*b - 2*c + d/1e-6, where a = has_circular_chromosome, b = no_of_circular_contigs, c = no_of_contigs & d = n50 (default = 10,2,2 as seen in formula)', default="10,2,2")
     parser_all_submodules.add_argument('-o', '--output', type=str, help='path to the save the output of the pipeline', required=True)
     parser_all_submodules.add_argument('-t', '--threads', type=str, help='number of threads to use, default = 1', default = "1")
     parser_all_submodules.add_argument('--prefix', type=str, help='Prefix for the output. If you use "batch_run" parameter, then provide "NA" as an input for this parameter', required=True)
     parser_all_submodules.add_argument('--asm-coverage', type=str, help="reduced coverage for initial disjointig assembly incase there is a high coverage of reads. Default value is not set, so that it uses all reads to perform the assembly. Incase, the initial disjointigs doesn't get assembled due to very high coverage, then suggested value is \"50\", so that it uses longest 50x reads for initial disjointigs assembly")
-    parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using pacbio/nanopore raw reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio/Nanopore "raw" reads and not with Pacbio "hifi" reads', default="False")
+    parser_all_submodules.add_argument('--alt_param', type=str, help='Run the assembly using Pacbio CLR or ONT reads with alternate parameters. Possible inputs are \"True\" or \"False\" (default = False). Use this parameter only when the assembly using default parameters in not satisfactory. Can only be used with Pacbio CLR or ONT reads and not with Pacbio HiFi reads', default="False")
     parser_all_submodules.add_argument('--db_path', type=str, help='path to the directory where you downloaded antismash databases (should point to directory which includes clusterblast, knownclusterblast, pfam etc as sub-directories). Use this option only when you downloaded databases at a custom location')
     parser_all_submodules.add_argument('--mibig', action='store_true', help='Use this option when you want to include MiBiG BGCs for clustering')
     parser_all_submodules.add_argument('--clustering_type', type=str, help='tool to use for clustering BGCs into GCFs. Possible inputs are \"bigslice\", \"bigscape\" or \"both\" (default = both)', required=True, default = "both")
@@ -125,29 +125,29 @@ def main():
 
             """Performing the assembly for single strain"""
 
-            if args.pacbio_raw != None:  # If the input reads are in .bam file, then converting it to fastq
-                print('Pacbio raw reads provided at this location:' + os.path.abspath(args.pacbio_raw))
+            if args.pacbio_clr != None:  # If the input reads are in .bam file, then converting it to fastq
+                print('Pacbio CLR reads provided at this location:' + os.path.abspath(args.pacbio_clr))
                 convert_reads(args)
-                print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+                print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
                 final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
             elif args.pacbio_hifi != None:  # If the input reads are in .bam file, then converting it to fastq
                 print('Pacbio HiFi reads provided at this location:' + os.path.abspath(args.pacbio_hifi))
                 convert_reads(args)
-                print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+                print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
                 final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
-            elif args.pacbio_raw != None and args.pacbio_hifi != None:
-                print("Sorry, we need only single type of reads (Raw or HiFi)")
+            elif args.pacbio_clr != None and args.pacbio_hifi != None:
+                print("Sorry, we need only single type of reads (CLR or HiFi)")
                 sys.exit(1)
 
-            elif args.reads != None and args.reads_type == "raw_pacbio":
-                print('Pacbio raw reads provided at this location:' + os.path.abspath(args.reads))
+            elif args.reads != None and args.reads_type == "clr_pacbio":
+                print('Pacbio CLR reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
                 suffixes = Path(args.reads).suffixes
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-                print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+                print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
                 final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio(args)
 
             elif args.reads != None and args.reads_type == "hifi_pacbio":
@@ -156,16 +156,16 @@ def main():
                 suffixes = Path(args.reads).suffixes
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-                print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+                print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
                 final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads(args)
 
-            elif args.reads != None and args.reads_type == "raw_nanopore":
-                print('Nanopore raw reads provided at this location:' + os.path.abspath(args.reads))
+            elif args.reads != None and args.reads_type == "ont":
+                print('Nanopore reads provided at this location:' + os.path.abspath(args.reads))
                 os.makedirs(args.output + "/raw_reads")
                 suffixes = Path(args.reads).suffixes
                 raw_reads_filename = args.prefix + "".join(suffixes)
                 shutil.copyfile(args.reads, args.output + "/raw_reads/" + raw_reads_filename)
-                print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
+                print("\n\nStaring the assembly using Nanopore reads now.....\n\n")
                 final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore(args)
 
             if not os.path.exists(basepath + '/assembly/' + args.prefix + '/best_assembly'):
@@ -200,27 +200,27 @@ def main():
                         suffixes = Path(raw_reads_location).suffixes
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
-                        print("\n\nStaring the assembly using pacbio HiFi reads now.....\n\n")
+                        print("\n\nStaring the assembly using Pacbio HiFi reads now.....\n\n")
                         final_assembly_path, final_circularity_file_path = perform_assembly_hifi_reads_batch_run(args, output_path + "/raw_reads/" + prefix + ".fastq", genome_size, prefix, output_path)
 
-                    elif reads_type == "raw_pacbio":
-                        print('Pacbio raw reads provided at this location:' + raw_reads_location)
+                    elif reads_type == "clr_pacbio":
+                        print('Pacbio CLR reads provided at this location:' + raw_reads_location)
                         if not os.path.exists(output_path + "/raw_reads"):
                             os.makedirs(output_path + "/raw_reads")
                         suffixes = Path(raw_reads_location).suffixes
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
-                        print("\n\nStaring the assembly using pacbio raw reads now.....\n\n")
+                        print("\n\nStaring the assembly using Pacbio CLR reads now.....\n\n")
                         final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_pacbio_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
 
-                    elif reads_type == "raw_nanopore":
-                        print('Nanopore raw reads provided at this location:' + raw_reads_location)
+                    elif reads_type == "ont":
+                        print('Nanopore reads provided at this location:' + raw_reads_location)
                         if not os.path.exists(output_path + "/raw_reads"):
                             os.makedirs(output_path + "/raw_reads")
                         suffixes = Path(raw_reads_location).suffixes
                         raw_reads_filename = prefix + "".join(suffixes)
                         shutil.copyfile(raw_reads_location, output_path + "/raw_reads/" + raw_reads_filename)
-                        print("\n\nStaring the assembly using nanopore raw reads now.....\n\n")
+                        print("\n\nStaring the assembly using Nanopore reads now.....\n\n")
                         final_assembly_path, final_circularity_file_path = perform_assembly_raw_reads_nanopore_batch_run(args, output_path + "/raw_reads/" + raw_reads_filename, genome_size, prefix, output_path)
 
                     if not os.path.exists(basepath + '/assembly/best_assemblies'):

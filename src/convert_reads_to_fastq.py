@@ -8,18 +8,18 @@ def convert_reads(args):
 
     basepath = os.path.abspath(args.output)
     os.makedirs(basepath + "/raw_reads")
-    print("Started converting the raw reads for " + args.prefix + " to a .fastq file")
+    print("Started converting the reads for " + args.prefix + " to a .fastq file")
     raw_reads_command = "samtools fastq "
 
 
-    if args.pacbio_raw != None:
-        raw_reads_command += args.pacbio_raw + " > " + basepath + "/raw_reads/" + args.prefix + '.fastq'
+    if args.pacbio_clr != None:
+        raw_reads_command += args.pacbio_clr + " > " + basepath + "/raw_reads/" + args.prefix + '.fastq'
     elif args.pacbio_hifi != None:
         raw_reads_command += args.pacbio_hifi + " > " + basepath + "/raw_reads/" + args.prefix + '.fastq'
 
     run_command(raw_reads_command, verbosity=args.verbose)
 
-    print("Raw reads can be found at: " + basepath + "/raw_reads")
+    print("Reads for " + args.prefix + " in the .fastq format can be found at: " + basepath + "/raw_reads")
 
 def run_command(cmd, verbosity=0):
     """
