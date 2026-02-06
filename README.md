@@ -2,6 +2,7 @@
 
 LoReMINE (**Lo**ng **Re**ad-based Microbial genome **min**ing pipelin**e**) is an end-to-end pipeline for microbial natural product discovery directly from long-read sequencing data. It integrates multiple sub-modules into a unified pipeline: (i) de-novo genome assembly using multiple long-read assemblers with automated selection of the highest-quality assembly, (ii) taxonomic classification, (iii) Biosynthetic gene clusters (BGC) detection, and (iv) clustering of BGCs to idenitfy gene cluster families (GCFs) which facilitates comparative analysis across different databases and taxa. By combining these steps into a unified pipeline, LoReMINE facilitates comprehensive exploration of natural product diversity which has the potential to yield novel drug candidates.
 
+**A detailed description of the LoReMINE pipeline is available in our preprint** [here](https://www.biorxiv.org/content/10.64898/2026.02.02.703231v1)
 
 # Installation
 
