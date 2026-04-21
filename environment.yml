@@ -20,6 +20,7 @@ dependencies:
   - sourmash_plugin_branchwater=0.9.13
   - sqlalchemy=2.0.2
   - click=8.1.7
+  - setuptools==80.9.0
   - pip
   - pip:
       - -e .
