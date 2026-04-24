@@ -40,6 +40,7 @@ We still need to install [BiG-SCAPE](https://github.com/medema-group/BiG-SCAPE) 
 cd ~/anaconda3/envs/loremine/
 git clone https://github.com/medema-group/BiG-SCAPE
 cd BiG-SCAPE
+git checkout v2.0.0
 pip install .
 `````
 
